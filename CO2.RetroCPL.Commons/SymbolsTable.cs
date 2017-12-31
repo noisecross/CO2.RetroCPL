@@ -133,24 +133,24 @@ namespace CO2.RetroCPL.Commons
 		    overlappable = false;
 		    address      = -1;
        }
-	 
-	    void setType(string type) { qType.type = type; }
-	 
-	    int getPointerDepth() { return qType.pointerDepth; }
-	 
-	    void setPointerDepth(int depth) { qType.pointerDepth = depth; }
-	 
-	    bool isVolatile() { return qType.b_volatile; }
-	 
-	    void setVolatile() { qType.b_volatile = true; }
-	 
-	    bool isConst() { return qType.b_const; }
-	 
-	    void setConst() { qType.b_const = true; }
-	 
-        bool isUnsigned() { return qType.b_unsigned; }
-	 
-	    void setUnsigned() { qType.b_unsigned = true; }
+        
+        public void setType(string type) { qType.type = type; }
+
+        public int getPointerDepth() { return qType.pointerDepth; }
+
+        public void setPointerDepth(int depth) { qType.pointerDepth = depth; }
+
+        public bool isVolatile() { return qType.b_volatile; }
+
+        public void setVolatile() { qType.b_volatile = true; }
+
+        public bool isConst() { return qType.b_const; }
+
+        public void setConst() { qType.b_const = true; }
+
+        public bool isUnsigned() { return qType.b_unsigned; }
+
+        public void setUnsigned() { qType.b_unsigned = true; }
 
 	    public string toString()
         {
@@ -218,7 +218,7 @@ namespace CO2.RetroCPL.Commons
             id = inId;
         }
 
-        bool setOutputType(QualifiedType inOutType)
+        public bool setOutputType(QualifiedType inOutType)
         {
             if (outputType.type == "void")
             {
@@ -228,443 +228,416 @@ namespace CO2.RetroCPL.Commons
             return false;
         }
 
-        bool addInputType(QualifiedType inType){
+        public bool addInputType(QualifiedType inType)
+        {
 		    inputType.Add(inType);
             inputArguments.Add(new List<STEntry>());
 		    return true;
 	    }
 
-        //bool addInputType(const QualifiedType &inType, const string &inSymbol){
-        //    inputType.push_back(inType);
-        //    inputSymbols.push_back(inSymbol);
-        //    inputArguments.push_back(list<STEntry*>());
+        public bool addInputType(QualifiedType inType, string inSymbol)
+        {
+            inputType.Add(inType);
+            inputSymbols.Add(inSymbol);
+            inputArguments.Add(new List<STEntry>());
+            return true;
+        }
+
+        public bool addInputArgument(STEntry argument, int position)
+        {
+            inputArguments[position].Add(argument);
+            return true;
+        }
+
+        public List<STEntry> getinputarguments(int position)
+        {
+            if(position < inputArguments.Count)
+                return inputArguments[position];
+            else
+                return new List<STEntry>();
+        }
+
+        void resetInputType()
+        {
+            inputType.Clear();
+            inputArguments.Clear();
+        }
+
+        public int calculateSize(SymbolsTable st){
+            HashSet<int> usedLocations = new HashSet<int>();
+            symbolsSize = 0;
+
+            foreach(var symbol in symbols)
+            {
+                int symSize = st.getTypeSize(symbol.Value.qType);
+                int address = symbol.Value.address;
+
+                if (address < 0)
+                    break;
+
+                /* Add 1 byte to 1 byte symbols */
+                if (!usedLocations.Contains(address))
+                {
+                    usedLocations.Add(address);
+                    symbolsSize++;
+                }
+
+                /* Add more bytes to bigger symbols */
+                for(int i = 1 ; i < symSize ; i++){	
+                    if (address < 0x0100){
+                        address += 0x0001;
+                    }else{
+                        address += 0x0100;
+                    }
+
+                    if (!usedLocations.Contains(address))
+                    {
+                        usedLocations.Add(address);
+                        symbolsSize++;
+                    }
+                }
+            }
+
+            return symbolsSize;
+        }
+	 
+        private bool addDependency(STFramework newDependency)
+        {
+            if (dependencies.Contains(newDependency)) return false;	 
+            dependencies.Add(newDependency);	 
+            return true;
+        }
+	 
+        private bool addSymbol(string lex)
+        {
+            if (symbols.ContainsKey(lex)) return false;
+            symbols.Add(lex, new STEntry(lex, name));
+            return true;
+        }
+	 
+        public bool addSymbol(string lex, QualifiedType inType)
+        {
+            if (symbols.ContainsKey(lex)) return false;
+            symbols.Add(lex, new STEntry(lex, name, inType));
+            return true;
+        }
+	 
+        public STEntry getSymbol(string lex)
+        {
+            if(symbols.ContainsKey(lex))
+                return symbols[lex];
+            else
+                return null;
+        }
+	 
+        public List <STEntry> getSymbols()
+        {
+            List <STEntry> output = new List<STEntry>();
+
+            foreach(var symbol in symbols)
+                output.Add(symbol.Value);
+
+            return output;
+        }
+
+        public bool delSymbol(string lex)
+        {
+            if (symbols.ContainsKey(lex))
+            {
+                symbols.Remove(lex);
+                return true;
+            }
+            else
+                return false;
+        }
+
+        //bool existsSymbol(string lex){ return symbols.count(lex) > 0; }
+	 
+        //bool setType(const string lex, const string type){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+        //    if (entry == symbols.end()) return false;
+	 
+        //    entry->second->setType(type);
         //    return true;
         //}
-
-    //bool addInputArgument(STEntry* argument, int position){
-
-    //    list<list<STEntry*>>::iterator it = inputArguments.begin();
-
-    //    for(int i = 0 ; i < position ; i++){
-    //        if (it == inputArguments.end()) return false;
-    //        it++;
-    //    }
-
-    //    (*it).push_back(argument);
-    //    return true;
-    //}
-
-    //list<STEntry*> getInputArguments(int position){
-
-    //    list<list<STEntry*>>::iterator it = inputArguments.begin();
-
-    //    for(int i = 0 ; i < position ; i++){
-    //        if (it == inputArguments.end()) return list<STEntry*>();
-    //        it++;
-    //    }
-
-    //    if(it != inputArguments.end())
-    //        return *it;
-    //    else
-    //        return list<STEntry*>();
-    //}
-
-    //void resetInputType(){
-    //    inputType.clear();
-    //    inputArguments.clear();
-    //}
-
-    //int  calculateSize(SymbolsTable *st){
-    //    unordered_set<int> usedLocations = unordered_set<int>();
-
-    //    symbolsSize = 0;	
-
-    //    for_each(symbols.begin(), symbols.end(), [this, &st, &usedLocations](pair<string, STEntry*> const x){
-    //        int symSize = st->getTypeSize(x.second->getType());
-    //        int address = x.second->getAddress();
-
-    //        if (address < 0)
-    //            return;
-
-    //        /* Add 1 byte to 1 byte symbols */
-    //        if (!usedLocations.count(address)){
-    //            usedLocations.insert(address);
-    //            symbolsSize++;
-    //        }
-
-    //        /* Add more bytes to biger symbols */
-    //        for(int i = 1 ; i < symSize ; i++){	
-    //            if (address < 0x0100){
-    //                address += 0x0001;
-    //            }else{
-    //                address += 0x0100;
-    //            }
-
-    //            if (!usedLocations.count(address)){
-    //                usedLocations.insert(address);
-    //                symbolsSize++;
-    //            }
-    //        }
-    //    });
-
-    //    return symbolsSize;
-    //}
 	 
-    //bool addDependency(STFramework* newDependency){
-    //    bool exists = false;
-    //    list<STFramework*>::iterator it = dependencies.begin();
+        //QualifiedType getType(string lex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    while(it != dependencies.end() && !exists)
-    //        if ((*it++)->getName() == newDependency->getName()) exists = true;
+        //    if (entry != symbols.end()) return entry->second->getType();
 	 
-    //    if (exists) return false;
+        //    return QualifiedType("");
+        //}
 	 
-    //    dependencies.push_back(newDependency);
+        //bool STFramework::setPointerDepth(stringlex, const int depth){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+        //    if (entry == symbols.end()) return false;
 	 
-    //    return true;
-    //}
+        //    entry->second->setPointerDepth(depth);
+        //    return true;
+        //}
 	 
-    //bool addSymbol(string lex){
-    //    if (symbols.count(lex) > 0) return false;
+        //int STFramework::getPointerDepth(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    STEntry* newSymbol = new STEntry(lex, name);
-    //    pair <string, STEntry*> newEntry = make_pair (lex, newSymbol);
+        //    if (entry != symbols.end()) return entry->second->getPointerDepth();
 	 
-    //    symbols.insert(newEntry);
-	 
-    //    return true;
-    //}
-	 
-    //bool addSymbol(const string &lex, const QualifiedType &inType){
-    //    if (symbols.count(lex) > 0) return false;
-	 
-    //    STEntry* newSymbol = new STEntry(lex, name, inType);
-    //    pair <string, STEntry*> newEntry = make_pair (lex, newSymbol);
-	 
-    //    symbols.insert(newEntry);
-	 
-    //    return true;
-    //}
-	 
-    //STEntry getSymbol(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) return entry->second;
-	 
-    //    return NULL;
-    //}
-	 
-    //List <STEntry> getSymbols(){
-    //    list <STEntry> output;
-
-    //    auto f_addToList = [&output](pair<string, STEntry*> const x){
-    //        output.push_back(x.second);
-    //    };
-
-    //    for_each(symbols.begin(), symbols.end(), f_addToList);
-
-    //    return output;
-    //}
-
-    //bool delSymbol(string lex){
-    //unordered_map<string, STEntry>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry == symbols.end()) return false;
-
-    //    symbols.erase(entry);
-
-    //    return true;
-    //}
-
-    //bool existsSymbol(string lex){ return symbols.count(lex) > 0; }
-	 
-    //bool setType(const string lex, const string type){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-    //    if (entry == symbols.end()) return false;
-	 
-    //    entry->second->setType(type);
-    //    return true;
-    //}
-	 
-    //QualifiedType getType(string lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) return entry->second->getType();
-	 
-    //    return QualifiedType("");
-    //}
-	 
-    //bool STFramework::setPointerDepth(const string &lex, const int depth){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-    //    if (entry == symbols.end()) return false;
-	 
-    //    entry->second->setPointerDepth(depth);
-    //    return true;
-    //}
-	 
-    //int STFramework::getPointerDepth(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) return entry->second->getPointerDepth();
-	 
-    //    return -1;
-    //}
+        //    return -1;
+        //}
 	 
 	 
 	 
 
-    //bool STFramework::isVolatile(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
+        //bool STFramework::isVolatile(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    if (entry != symbols.end()) return entry->second->isVolatile();
+        //    if (entry != symbols.end()) return entry->second->isVolatile();
 	 
-    //    return false;
-    //}
-	 
-	 
-	 
-
-    //bool STFramework::setVolatile(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) {
-    //        entry->second->setVolatile();
-    //        return true;
-    //    }
-	 
-    //    return false;
-    //}
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //bool STFramework::isConst(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
+        //bool STFramework::setVolatile(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    if (entry != symbols.end()) return entry->second->isConst();
+        //    if (entry != symbols.end()) {
+        //        entry->second->setVolatile();
+        //        return true;
+        //    }
 	 
-    //    return false;
-    //}
-	 
-	 
-	 
-
-    //bool STFramework::setConst(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) {
-    //        entry->second->setConst();
-    //        return true;
-    //    }
-	 
-    //    return false;
-    //}
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //bool STFramework::isLiteral(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
+        //bool STFramework::isConst(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    if (entry != symbols.end()) return entry->second->isLiteral();
+        //    if (entry != symbols.end()) return entry->second->isConst();
 	 
-    //    return false;
-    //}
-	 
-	 
-	 
-
-    //bool STFramework::setLiteral(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) {
-    //        entry->second->setLiteral();
-    //        return true;
-    //    }
-	 
-    //    return false;
-    //}
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //bool STFramework::isUnsigned(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
+        //bool STFramework::setConst(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    if (entry != symbols.end()) return entry->second->isUnsigned();
+        //    if (entry != symbols.end()) {
+        //        entry->second->setConst();
+        //        return true;
+        //    }
 	 
-    //    return false;
-    //}
-	 
-	 
-	 
-
-    //bool STFramework::setUnsigned(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) {
-    //        entry->second->setUnsigned();
-    //        return true;
-    //    }
-	 
-    //    return false;
-    //}
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //int STFramework::getNUses(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
+        //bool STFramework::isLiteral(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    if (entry != symbols.end())
-    //        return entry->second->getNUses();
+        //    if (entry != symbols.end()) return entry->second->isLiteral();
 	 
-    //    return -1;
-    //}
-	 
-	 
-	 
-
-    //bool STFramework::setNUses(const string &lex, int inNUses){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()){
-    //        entry->second->setNUses(inNUses);
-    //        return true;
-    //    }
-	 
-    //    return false;
-    //}
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //int STFramework::getAddress(const string &lex){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
+        //bool STFramework::setLiteral(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    if (entry != symbols.end()) return entry->second->getAddress();
+        //    if (entry != symbols.end()) {
+        //        entry->second->setLiteral();
+        //        return true;
+        //    }
 	 
-    //    return -1;
-    //}
-	 
-	 
-	 
-
-    //bool STFramework::setAddress(const string &lex, int address){
-    //    unordered_map<string, STEntry*>::const_iterator entry;
-    //    entry = symbols.find(lex);
-	 
-    //    if (entry != symbols.end()) {
-    //        entry->second->setAddress(address);
-    //        return true;
-    //    }
-	 
-    //    return false;
-    //}
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //bool STFramework::addLabel(const string &newLabel){
-    //    if (existsLabel(newLabel)) return false;
-    //    labels.insert(newLabel);
-    //    return true;
-    //}
+        //bool STFramework::isUnsigned(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+	 
+        //    if (entry != symbols.end()) return entry->second->isUnsigned();
+	 
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //bool STFramework::existsLabel(const string &label){
-    //    return labels.find(label) != labels.end();
-    //}
+        //bool STFramework::setUnsigned(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+	 
+        //    if (entry != symbols.end()) {
+        //        entry->second->setUnsigned();
+        //        return true;
+        //    }
+	 
+        //    return false;
+        //}
 	 
 	 
 	 
 
-    //string STFramework::toString() const{
-    //    /* <future> print labels */
-    //    ostringstream output;
-    //    string        inputType_string = "";
+        //int STFramework::getNUses(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
 	 
-    //    auto f_concat = [&output](pair<string, STEntry*> const x){
-    //        output << x.second->toString();
-    //    };
+        //    if (entry != symbols.end())
+        //        return entry->second->getNUses();
 	 
-    //    auto f_printInput = [&output, &inputType_string](const QualifiedType &x){
-    //        inputType_string += x.toString() + ", ";
-    //    };
+        //    return -1;
+        //}
 	 
 	 
-    //    if (name == GLOBAL_FRAMEWORK && symbols.size() == 0){
-    //        output << endl;
-    //        return output.str();
-    //    }	
+	 
 
-    //    output << "+-------------------------------------------";
-    //    output << "----------------------------------+" << endl;
-    //    output << "|" << setw(78) << right << "|" << endl;
-    //    if(!recursive){
-    //        output << "| Framework: " << left << setw(64) << name << " |" << endl;
-    //    }else{
-    //        output << "| Framework: (R)" << left << setw(61) << name << " |" << endl;
-    //    }
-    //    output << "|" << setw(78) << right << "|" << endl;
+        //bool STFramework::setNUses(stringlex, int inNUses){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+	 
+        //    if (entry != symbols.end()){
+        //        entry->second->setNUses(inNUses);
+        //        return true;
+        //    }
+	 
+        //    return false;
+        //}
+	 
+	 
+	 
+
+        //int STFramework::getAddress(stringlex){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+	 
+        //    if (entry != symbols.end()) return entry->second->getAddress();
+	 
+        //    return -1;
+        //}
+	 
+	 
+	 
+
+        //bool STFramework::setAddress(stringlex, int address){
+        //    unordered_map<string, STEntry*>::const_iterator entry;
+        //    entry = symbols.find(lex);
+	 
+        //    if (entry != symbols.end()) {
+        //        entry->second->setAddress(address);
+        //        return true;
+        //    }
+	 
+        //    return false;
+        //}
+	 
+	 
+	 
+
+        //bool STFramework::addLabel(stringnewLabel){
+        //    if (existsLabel(newLabel)) return false;
+        //    labels.insert(newLabel);
+        //    return true;
+        //}
+	 
+	 
+	 
+
+        //bool STFramework::existsLabel(stringlabel){
+        //    return labels.find(label) != labels.end();
+        //}
+	 
+	 
+	 
+
+        //string STFramework::toString() const{
+        //    /* <future> print labels */
+        //    ostringstream output;
+        //    string        inputType_string = "";
+	 
+        //    auto f_concat = [&output](pair<string, STEntry*> const x){
+        //        output << x.second->toString();
+        //    };
+	 
+        //    auto f_printInput = [&output, &inputType_string](const QualifiedType &x){
+        //        inputType_string += x.toString() + ", ";
+        //    };
+	 
+	 
+        //    if (name == GLOBAL_FRAMEWORK && symbols.size() == 0){
+        //        output << endl;
+        //        return output.str();
+        //    }	
+
+        //    output << "+-------------------------------------------";
+        //    output << "----------------------------------+" << endl;
+        //    output << "|" << setw(78) << right << "|" << endl;
+        //    if(!recursive){
+        //        output << "| Framework: " << left << setw(64) << name << " |" << endl;
+        //    }else{
+        //        output << "| Framework: (R)" << left << setw(61) << name << " |" << endl;
+        //    }
+        //    output << "|" << setw(78) << right << "|" << endl;
 		 
-    //    for_each(inputType.begin(), inputType.end(), f_printInput);
-    //    if (inputType_string == "")
-    //        inputType_string = "void";
-    //    else
-    //        inputType_string.erase(inputType_string.length() - 2, 2);
+        //    for_each(inputType.begin(), inputType.end(), f_printInput);
+        //    if (inputType_string == "")
+        //        inputType_string = "void";
+        //    else
+        //        inputType_string.erase(inputType_string.length() - 2, 2);
 	 
-    //    output << "| Input:     " << left << setw(65) << inputType_string.substr(0, 64) << right << "|" << endl;
-    //    output << "| Output:    " << left << setw(64) << outputType.toString() << " |" << endl;
+        //    output << "| Input:     " << left << setw(65) << inputType_string.substr(0, 64) << right << "|" << endl;
+        //    output << "| Output:    " << left << setw(64) << outputType.toString() << " |" << endl;
 	 
-    //    output << right;
-    //    output << "| Var Mem:   " << setw(5) << symbolsSize << " bytes" << right << setw(55) << " |" << endl;
-    //    output << "| Code Mem:  " << setw(5) << codeSize    << " bytes" << right << setw(55) << " |" << endl;
+        //    output << right;
+        //    output << "| Var Mem:   " << setw(5) << symbolsSize << " bytes" << right << setw(55) << " |" << endl;
+        //    output << "| Code Mem:  " << setw(5) << codeSize    << " bytes" << right << setw(55) << " |" << endl;
 
-    //    output << "|" << setw(78) << right << "|" << endl;
+        //    output << "|" << setw(78) << right << "|" << endl;
 	 
-    //    output << "+------------------+--------------+-----+---";
-    //    output << "---------------+---+-----+--------+" << endl;
+        //    output << "+------------------+--------------+-----+---";
+        //    output << "---------------+---+-----+--------+" << endl;
 	 
-    //    output << "| Lexeme           | Type         | Arr | Fr";
-    //    output << "amework        | V | #Us | MemAdd |" << endl;
+        //    output << "| Lexeme           | Type         | Arr | Fr";
+        //    output << "amework        | V | #Us | MemAdd |" << endl;
 	 
-    //    output << "+------------------+--------------+-----+---";
-    //    output << "---------------+---+-----+--------+" << endl;
+        //    output << "+------------------+--------------+-----+---";
+        //    output << "---------------+---+-----+--------+" << endl;
 	 
-    //    for_each(symbols.begin(), symbols.end(), f_concat);
+        //    for_each(symbols.begin(), symbols.end(), f_concat);
 	 
-    //    output << "+------------------+--------------+-----+---";
-    //    output << "---------------+---+-----+--------+" << endl;
-    //    output << endl;
+        //    output << "+------------------+--------------+-----+---";
+        //    output << "---------------+---+-----+--------+" << endl;
+        //    output << endl;
 	 
-    //    return output.str();
-    //}
+        //    return output.str();
+        //}
     }
 
     public class Type
     {
-        string type;
-        int size;
+        public string type;
+        public int size;
 
         public Type(string inType, int inSize)
         {
@@ -675,356 +648,218 @@ namespace CO2.RetroCPL.Commons
 
     class SymbolsTable
     {
-	    Dictionary <string, STFramework> frameworks;
-        Dictionary<string, string>       constants;
-	    List <Type>                      types;
-	    List <string>                    tempIdentifiers;
-	    List <string>                    tempTypes;
-	    List <string>                    tempLiterals;
-	    int                              idCounter;
-	    int                              memSize;
+        Dictionary<string, STFramework>  frameworks      = new Dictionary<string, STFramework>();
+        Dictionary<string, string>       constants       = new Dictionary<string, string>();
+        List<Type>                       types           = new List<Commons.Type>();
+        List<string>                     tempIdentifiers = new List<string>();
+        List<string>                     tempTypes       = new List<string>();
+        List<string>                     tempLiterals    = new List<string>();
+        int                              idCounter       = 0;
+        int                              memSize         = 0;
 
-        //SymbolsTable::SymbolsTable() {
-        //    frameworks      = unordered_map <string, STFramework*>();
-        //    constants       = unordered_map <string, string>();
-        //    types           = list <Type>();
-        //    tempIdentifiers = list <string>();
-        //    tempTypes       = list <string>();
-        //    tempLiterals    = list <string>();
-        //    idCounter       = 0;
-        //}
+        public SymbolsTable() { }
  
+        public bool addFramework(string framework)
+        {
+            if (frameworks.ContainsKey(framework)) return false;
  
- 
+            STFramework newSymbol = new STFramework(framework, idCounter++);
+            frameworks.Add(framework, newSymbol);
 
-        //SymbolsTable::~SymbolsTable() {
-        //    auto f_delSymbolPointers = [](pair<string, STFramework*> const &x){ delete x.second; };
-        //    for_each(frameworks.begin(), frameworks.end(), f_delSymbolPointers);
-        //    frameworks.clear();
-        //    constants.clear();
-        //    types.clear();
-        //    tempIdentifiers.clear();
-        //    tempTypes.clear();
-        //    tempLiterals.clear();
-        //}
+            return true;
+        }
  
+        public bool existsFramework(string framework)
+        {
+            return frameworks.ContainsKey(framework);
+        }
  
+        public STFramework getFramework(string framework)
+        {
+            return frameworks[framework];
+        }
  
+        public List<STFramework> getFrameworks()
+        {
+            return frameworks.Values.ToList();
+        }
 
-        //bool SymbolsTable::addFramework(const string &framework) {
-        //    if (frameworks.count(framework) > 0) return false;
- 
-        //    STFramework* newSymbol = new STFramework(framework, idCounter++);
-        //    pair <string, STFramework*> newEntry = make_pair (framework, newSymbol);
- 
-        //    frameworks.insert(newEntry);
- 
-        //    return true;
-        //}
- 
- 
- 
+        public bool addConstant(string name, string constant)
+        {
+            if (constants.ContainsKey(name)) return false;
+            constants.Add(name, constant);
 
-        //bool SymbolsTable::existsFramework(const string& framework) {
-        //    return frameworks.count(framework) > 0;
-        //}
+            return true;
+        }
+        
+        public bool existsConstant(string name)
+        {
+            return constants.ContainsKey(name);
+        }
  
+        public string getConstant(string name)
+        {
+            return constants[name];
+        }
  
+        public bool addType(string name, int size)
+        {
+            types.Add(new Type(name, size));
+            return true;
+        }
  
+        private bool existsType(string name)
+        {
+            return types.Where(_ => _.type == name).Count() > 0;
+        }
+ 
+        public int getTypeSize(string name)
+        {
+            var type = types.Where(_ => _.type == name);
+            if (type == null || type.Count() <= 0) return -255;
+            return type.First().size;
+        }
+ 
+        public int getTypeSize(QualifiedType inType)
+        {
+            int output = -255;
 
-        //STFramework* SymbolsTable::getFramework(const string &framework) {
-        //    unordered_map<string, STFramework*>::const_iterator entry;
-        //    entry = frameworks.find(framework);
- 
-        //    return entry->second;
-        //}
- 
- 
- 
+            if (inType.pointerDepth == 0)
+                output = getTypeSize(inType.type);
+            else                
+                output = 2; // The size of a pointer
 
-        //list <STFramework*> SymbolsTable::getFrameworks(){
-        //    list <STFramework*> output;
+            output *= inType.arrSize;
+ 
+            return output;
+        }
+ 
+        public void pushTempIdentifier(string name)
+        {
+            tempIdentifiers.Add(name);
+        }
+ 
+        public string popTempIdentifier()
+        {
+            //string output = tempIdentifiers.back();
+            //tempIdentifiers.pop_back();
+            string output = tempIdentifiers.Last();
+            tempIdentifiers.RemoveAt(tempIdentifiers.Count - 1);
+            return output;
+        }
+ 
+        public void pushTempLiteral(string literalValue)
+        {
+            tempLiterals.Add(literalValue);
+        }
 
-        //    auto f_addToList = [&output](pair<string, STFramework*> const x){
-        //        output.push_back(x.second);
-        //    };
+        public string poptempliteral()
+        {
+            string output = tempLiterals.Last();
+            tempLiterals.RemoveAt(tempLiterals.Count - 1);
+            return output;
+        }
+ 
+        public void pushTempType(string name)
+        {
+            tempIdentifiers.Add(name);
+        }
+ 
+        public string popTempType(){
+            string output = tempTypes.Last();
+            tempTypes.RemoveAt(tempTypes.Count - 1);
+            return output;
+        }
+ 
+        public void resetNUses()
+        {
+            foreach(var framework in frameworks)
+                foreach (var symbol in framework.Value.getSymbols())
+                    symbol.n_uses = 0;
+        }
 
-        //    for_each(frameworks.begin(), frameworks.end(), f_addToList);
- 
-        //    return output;
-        //}
+        public int getId(string framework)
+        {
+            if (!existsFramework(framework)) return -1;
+            return getFramework(framework).id;
+        }
 
+        public QualifiedType getOutputType(string framework)
+        {
+            if (!existsFramework(framework)) return null;
+            return getFramework(framework).outputType;
+        }
+ 
+        public bool setOutputType(string framework, QualifiedType type)
+        {
+            if (!existsFramework(framework)) return false;
+            getFramework(framework).outputType = type;
 
+            return true;
+        }
 
-
-        //bool SymbolsTable::addConstant(const string &name, const string &constant){
-        //    if (constants.count(name) > 0) return false;
+        public List<QualifiedType> getInputType(string framework)
+        {
+            if (!existsFramework(framework)) return new List<QualifiedType>();
+            return getFramework(framework).inputType;
+        }
  
-        //    pair <string, string> newEntry = make_pair (name, constant);
- 
-        //    constants.insert(newEntry);
- 
-        //    return true;
-        //}
- 
- 
- 
-
-        //bool SymbolsTable::existsConstant(const string &name){
-        //    return constants.count(name) > 0;
-        //}
- 
- 
- 
-
-        //string SymbolsTable::getConstant(const string &name){
-        //    unordered_map<string, string>::const_iterator entry;
-        //    entry = constants.find(name);
- 
-        //    return entry->second;
-        //}
- 
- 
- 
-
-        //bool SymbolsTable::addType(const string &name, int size){
-        //    types.push_back(Type(name, size));
-        //    return true;
-        //}
- 
- 
- 
-
-        //bool SymbolsTable::existsType(const string &name){
-        //    bool exists = false;
-        //    list<Type>::iterator it = types.begin();
- 
-        //    while(it != types.end() && !exists)
-        //        if ((*it++).type == name) exists = true;
- 
-        //    return exists;
-        //}
- 
- 
- 
-
-        //int SymbolsTable::getTypeSize(const string &name){
-        //    int output = -255;
-        //    list<Type>::iterator it = types.begin();
- 
-        //    while(it != types.end() && output < -254)
-        //        if ((*it++).type == name) output = (*--it).size;
- 
-        //    return output;
-        //}
- 
- 
- 
-
-        //int SymbolsTable::getTypeSize(const QualifiedType &inType){
-        //    int output = -255;
-        //    list<Type>::iterator it = types.begin();
- 
-        //    if (inType.pointerDepth == 0){
-        //        while(it != types.end() && output <= -255)
-        //            if ((*it++).type == inType.type) output = (*--it).size;
-        //    }else{
-        //        /* The size of a pointer */
-        //        output = 2;
-        //    }
- 
-        //    output *= inType.arrSize;
- 
-        //    return output;
-        //}
- 
- 
- 
-
-        //void SymbolsTable::pushTempIdentifier(const string &name){
-        //    tempIdentifiers.push_back(name);
-        //}
- 
- 
- 
-
-        //string SymbolsTable::popTempIdentifier(){
-        //    string output = tempIdentifiers.back();
-        //    tempIdentifiers.pop_back();
-        //    return output;
-        //}
- 
- 
- 
-
-        //void SymbolsTable::pushTempLiteral(const string &literalValue){
-        //    tempLiterals.push_back(literalValue);
-        //}
- 
- 
- 
-
-        //string SymbolsTable::popTempLiteral(){
-        //    string output = tempLiterals.back();
-        //    tempLiterals.pop_back();
-        //    return output;
-        //}
- 
- 
- 
-
-        //void SymbolsTable::pushTempType(const string &name){
-        //    tempIdentifiers.push_back(name);
-        //}
- 
- 
- 
-
-        //string SymbolsTable::popTempType(){
-        //    string output = tempTypes.back();
-        //    tempTypes.pop_back();
-        //    return output;
-        //}
- 
- 
- 
-
-        //void SymbolsTable::resetNUses(){
-
-        //    auto f_resetNUses = [](pair<string, STFramework*> x){
-        //        list <STEntry*> symbolsList = x.second->getSymbols();
-        //        for_each(symbolsList.begin(), symbolsList.end(),
-        //            [](STEntry* x){ x->setNUses(0); }
-        //        );
-        //    };
-
-
-        //    for_each(frameworks.begin(), frameworks.end(), f_resetNUses);
-        //}
-
-
-
-
-        //int SymbolsTable::getId(const string &framework){
-        //    if (!existsFramework(framework)) return -1;
-        //    STFramework* framework_ptr = getFramework(framework);
- 
-        //    return framework_ptr->getId();
-        //}
-
-
-
-
-        //QualifiedType SymbolsTable::getOutputType(const string &framework){
-        //    if (!existsFramework(framework)) return QualifiedType("");
-        //    STFramework* framework_ptr = getFramework(framework);
- 
-        //    return framework_ptr->getOutputType();
-        //}
- 
- 
- 
-
-        //bool SymbolsTable::setOutputType(const string &framework, const QualifiedType &type){
-        //    if (!existsFramework(framework)) return false;
-        //    STFramework* framework_ptr = getFramework(framework);
- 
-        //    return framework_ptr->setOutputType(type);
-        //}
- 
- 
- 
-
-        //list<QualifiedType> SymbolsTable::getInputType(const string &framework){
-        //    if (!existsFramework(framework)) return list<QualifiedType>();
-        //    STFramework* framework_ptr = getFramework(framework);
- 
-        //    return framework_ptr->getInputType();
-        //}
- 
- 
- 
-
-        //list<string> SymbolsTable::getInputSymbols(const string &framework){
+        //public list<string> getInputSymbols(stringframework){
         //    if (!existsFramework(framework)) return list<string>();
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getInputSymbols();
         //}
 
-
-
-
-        //bool SymbolsTable::addInputType(const string &framework, const QualifiedType &inType){
+        //public bool addInputType(stringframework, const QualifiedType &inType){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addInputType(inType);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::addInputType(const string &framework, const QualifiedType &inType, const string &inSymbol){
+        //public bool addInputType(stringframework, const QualifiedType &inType, stringinSymbol){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addInputType(inType, inSymbol);
         //}
 
-
-
-
-        //bool SymbolsTable::addInputArgument(const string &framework, STEntry* argument, int position){
+        //public bool addInputArgument(stringframework, STEntry* argument, int position){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addInputArgument(argument, position);
         //}
 
-
-
-
-        //list<STEntry*> SymbolsTable::getInputArguments(const string &framework, int position){
+        //public list<STEntry*> getInputArguments(stringframework, int position){
         //    if (!existsFramework(framework)) return list<STEntry*>();
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getInputArguments(position);
         //}
 
-
-
-
-        //void SymbolsTable::resetInputType(const string &framework){
+        //public void resetInputType(stringframework){
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    framework_ptr->resetInputType();
         //}
- 
- 
- 
 
-        //int SymbolsTable::calculateSize(const string &framework){
+        //public int calculateSize(stringframework){
         //    if (!existsFramework(framework)) return -1;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->calculateSize(this);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::addDependency(const string &framework, STFramework* dependency){
+        //public bool addDependency(stringframework, STFramework* dependency){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addDependency(dependency);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::addDependency(const string &framework, const string &dependency){
+        //public bool addDependency(stringframework, stringdependency){
         //    if (!existsFramework(framework)) return false;
         //    if (!existsFramework(dependency)) return false;
  
@@ -1033,91 +868,64 @@ namespace CO2.RetroCPL.Commons
  
         //    return framework_ptr->addDependency(dependency_ptr);
         //}
- 
- 
- 
 
-        //list<STFramework*> SymbolsTable::getDependencies(const string &framework){
+        //public list<STFramework*> getDependencies(stringframework){
         //    if (!existsFramework(framework)) return list<STFramework*>();
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getDependencies();
         //}
 
-
-
-
-        //bool SymbolsTable::addLabel(const string &framework, const string &newLabel){
+        //public bool addLabel(stringframework, stringnewLabel){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addLabel(newLabel);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::existsLabel(const string &framework, const string &label){
+        //public bool existsLabel(stringframework, stringlabel){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->existsLabel(label);
         //}
- 
- 
- 
 
-        //void SymbolsTable::setRecursive(const string &framework){
+        //public void setRecursive(stringframework){
         //    if (!existsFramework(framework)) return;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setRecursive();
         //}
 
-
-
-
-        //bool SymbolsTable::isRecursive(const string &framework){
+        //public bool isRecursive(stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->isRecursive();
         //}
 
-
-
-
-        //void SymbolsTable::setAsDefined(const string &framework){
+        //public void setAsDefined(stringframework){
         //    if (!existsFramework(framework)) return;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setAsDefined();
         //}
 
-
-
-
-        //bool SymbolsTable::isDefined(const string &framework){
+        //public bool isDefined(stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->isDefined();
         //}
 
-
-
-
-        //bool SymbolsTable::addSymbol(const string &lex, const string &framework) {
+        //public bool addSymbol(stringlex, stringframework) {
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addSymbol(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::addSymbol(const string &lex, const string &type, const string &framework) {
+        //public bool addSymbol(stringlex, stringtype, stringframework) {
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
@@ -1125,201 +933,141 @@ namespace CO2.RetroCPL.Commons
  
         //    return framework_ptr->setType(lex, type);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::addSymbol(const string &lex, const QualifiedType &inType, const string &framework) {
+        //public bool addSymbol(stringlex, const QualifiedType &inType, stringframework) {
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->addSymbol(lex, inType);
         //}
- 
- 
- 
 
-        //STEntry* SymbolsTable::getSymbol(const string &lex, const string &framework){
+        //public STEntry* getSymbol(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getSymbol(lex);
         //}
 
-
-
-
-        //list <STEntry*> SymbolsTable::getSymbols(const string &framework){
+        //public list <STEntry*> getSymbols(stringframework){
         //    if (!existsFramework(framework)) return list<STEntry*>();
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getSymbols();
         //}
 
-
-
-
-        //bool SymbolsTable::delSymbol(const string &lex, const string &framework){
+        //public bool delSymbol(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->delSymbol(lex);
         //}
 
-
-
-
-        //bool SymbolsTable::existsSymbol(const string &lex, const string &framework) {
+        //public bool existsSymbol(stringlex, stringframework) {
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->existsSymbol(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setType(const string &lex, const string &type, const string &framework) {
+        //public bool setType(stringlex, stringtype, stringframework) {
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setType(lex, type);
         //}
- 
- 
- 
 
-        //QualifiedType SymbolsTable::getType(const string &lex, const string &framework){
+        //public QualifiedType getType(stringlex, stringframework){
         //    if (!existsFramework(framework)) return QualifiedType("");
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getType(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setPointerDepth(const string &lex, const string &framework, const int depth) {
+        //public bool setPointerDepth(stringlex, stringframework, const int depth) {
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setPointerDepth(lex, depth);
         //}
- 
- 
- 
 
-        //int SymbolsTable::getPointerDepth(const string &lex, const string &framework){
+        //public int getPointerDepth(stringlex, stringframework){
         //    if (!existsFramework(framework)) return -2;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getPointerDepth(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::isVolatile(const string &lex, const string &framework){
+        //public bool isVolatile(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->isVolatile(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setVolatile(const string &lex, const string &framework){
+        //public bool setVolatile(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setVolatile(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::isConst(const string &lex, const string &framework){
+        //public bool isConst(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->isConst(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setConst(const string &lex, const string &framework){
+        //public bool setConst(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setConst(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::isLiteral(const string &lex, const string &framework){
+        //public bool isLiteral(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->isLiteral(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setLiteral(const string &lex, const string &framework){
+        //public bool setLiteral(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setLiteral(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::isUnsigned(const string &lex, const string &framework){
+        //public bool isUnsigned(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->isUnsigned(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setUnsigned(const string &lex, const string &framework){
+        //public bool setUnsigned(stringlex, stringframework){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setUnsigned(lex);
         //}
- 
- 
- 
 
-        //int SymbolsTable::getNUses(const string &lex, const string &framework){
+        //public int getNUses(stringlex, stringframework){
         //    if (!existsFramework(framework)) return -1;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getNUses(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setNUses(const string &lex, const string &framework, int inNUses){
+        //public bool setNUses(stringlex, stringframework, int inNUses){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setNUses(lex, inNUses);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::incNUses(const string &lex, const string &framework, int increment){
+        //public bool incNUses(stringlex, stringframework, int increment){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
@@ -1328,36 +1076,24 @@ namespace CO2.RetroCPL.Commons
  
         //    return framework_ptr->setNUses(lex, oldValue + increment);
         //}
- 
- 
- 
 
-        //int SymbolsTable::getAddress(const string &lex, const string &framework){
+        //public int getAddress(stringlex, stringframework){
         //    if (!existsFramework(framework)) return -1;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->getAddress(lex);
         //}
- 
- 
- 
 
-        //bool SymbolsTable::setAddress(const string &lex, const string &framework, int address){
+        //public bool setAddress(stringlex, stringframework, int address){
         //    if (!existsFramework(framework)) return false;
         //    STFramework* framework_ptr = getFramework(framework);
  
         //    return framework_ptr->setAddress(lex, address);
         //}
 
+        //public void setMemSize(int inSize){ memSize = inSize; }
 
-
-
-        //void SymbolsTable::setMemSize(int inSize){ memSize = inSize; }
-
-
-
-
-        //string SymbolsTable::toString() {
+        //public string toString() {
  
         //    int codeSize = 0;
         //    ostringstream output;
