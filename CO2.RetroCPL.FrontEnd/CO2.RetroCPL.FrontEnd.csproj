@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3C426DF0-8BD9-40A5-BB6C-D3AB952E221F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CO2.RetroCPL.FrontEnd</RootNamespace>
+    <AssemblyName>CO2.RetroCPL.FrontEnd</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="QUT.ShiftReduceParser, Version=1.4.6.0, Culture=neutral, PublicKeyToken=402396ef6102baec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>GardensPoint\QUT.ShiftReduceParser.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Helper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SyntaxTree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="GardensPoint\Gplex.exe" />
+    <Content Include="GardensPoint\Gppg.exe" />
+    <Content Include="GardensPoint\QUT.ShiftReduceParser.dll" />
+    <Content Include="GardensPoint\README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Lex Include="RetroCPLScaner.lex" />
+    <Compile Include="RetroCPLScaner.cs">
+      <DependentUpon>RetroCPLScaner.lex</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Yacc Include="RetroCPLParser.y" />
+    <Compile Include="RetroCPLParser.cs">
+      <DependentUpon>RetroCPLParser.y</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CO2.RetroCPL.Commons\CO2.RetroCPL.Commons.csproj">
+      <Project>{0910AD12-DC85-4547-A73A-860FC6258A3E}</Project>
+      <Name>CO2.RetroCPL.Commons</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CoreCompileDependsOn>GenerateLexer;$(CoreCompileDependsOn)</CoreCompileDependsOn>
+    <CoreCompileDependsOn>GenerateParser;$(CoreCompileDependsOn)</CoreCompileDependsOn>
+    <UseHostCompilerIfAvailable>false</UseHostCompilerIfAvailable>
+  </PropertyGroup>
+  <Target Name="GenerateLexer" Inputs="@(Lex)" Outputs="@(Lex->'%(Filename).cs')">
+    <Exec Command="$(ProjectDir)GardensPoint/gplex.exe /unicode /verbose /parser /stack /minimize /classes /compressMap /compressNext /persistBuffer /embedbuffers /out:@(Lex ->'%(Filename).cs') %(Lex.Identity)" />
+    <CreateItem Include="%(Lex.Filename).cs">
+      <Output TaskParameter="Include" ItemName="FileWrites" />
+    </CreateItem>
+  </Target>
+  <Target Name="GenerateParser" Inputs="@(Yacc)" Outputs="@(Yacc->'%(Filename).cs')">
+    <Exec Command="$(ProjectDir)GardensPoint/gppg.exe /conflicts /no-lines /gplex /verbose %(Yacc.Identity) &gt; @(Yacc ->'%(Filename).cs')" />
+    <CreateItem Include="%(Yacc.Filename).cs">
+      <Output TaskParameter="Include" ItemName="FileWrites" />
+    </CreateItem>
+  </Target>
+</Project>
