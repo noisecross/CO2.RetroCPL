@@ -2,22 +2,106 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CO2.RetroCPL.Commons;
 
 namespace CO2.RetroCPL.FrontEnd
 {
-    class SyntaxTree
+    public class SyntaxTree
     {
+        SyntaxTreeNode _root = null;
 
+        private static SyntaxTree _uniqueSyntaxTree = null;
+        public  static SyntaxTree Instance
+        {
+            get
+            {
+                if (_uniqueSyntaxTree == null)
+                    _uniqueSyntaxTree = new SyntaxTree();
+                return _uniqueSyntaxTree;
+            }
+        }
+
+        public void setRoot(SyntaxTreeNode root)
+        {
+            _root = root;
+        }
+
+        public static string toString()
+        {
+            if (_uniqueSyntaxTree == null || Instance._root == null)
+                return string.Empty;
+
+            return Instance._root.toString();
+        }
     }
 
     public class SyntaxTreeNode
     {
-        public SyntaxTreeNode() { }
+        protected int                  rule        = -1;
+        protected int                  line        = -1;
+        public    int                  value       = 0;
+        public    bool                 valueIsUsed = false;
+        protected bool                 returnDone  = false;
+        public    string               lex         = string.Empty;
+        protected List<SyntaxTreeNode> children    = new List<SyntaxTreeNode>();
+        public    QualifiedType        type        = new QualifiedType();
 
-        public void pollo()
+        public SyntaxTreeNode(){ }
+        public SyntaxTreeNode(int rule, int line)
         {
-            List<SyntaxTreeNode> list = new List<SyntaxTreeNode>();
-            list.Add(new TranslationUnitSTN());
+            this.rule = rule;
+            this.line = line;
+        }
+        public SyntaxTreeNode(int rule, int line, SyntaxTreeNode[] children)
+        {
+            this.rule = rule;
+            this.line = line;
+
+            foreach (SyntaxTreeNode item in children)
+                this.children.Add(item);
+        }
+
+        public void addChildren(SyntaxTreeNode[] children)
+        {
+            foreach (SyntaxTreeNode item in children)
+                this.children.Add(item);
+        }
+
+        public string getNodeType() { return this.GetType().Name; }
+
+        public virtual QualifiedType typeCheck() { return new QualifiedType(); }
+
+        protected static void addError(string errMessage, string lex, int line)
+        {
+            string errOutput = string.Format("\t{0} ({1}){2}\t^{3}", lex, line, Environment.NewLine, errMessage);
+            ErrManager.Instance.addError(errOutput);
+        }
+
+        public string toString()
+        {
+            return toString("   ");
+        }
+
+        private string toString(string prefix)
+        {
+            string output = string.Format("{0}+-{1} : ({2})", Helper.substr(prefix, (prefix.Length - 3)), getNodeType(), type.toString());
+            if (lex != "")   output += string.Format(" ({0})", lex);
+            if (valueIsUsed) output += string.Format(" ({0})", value);
+            output += Environment.NewLine;
+
+            int size = children.Count;
+            foreach (var item in children)
+            {
+                size--;
+                string newPrefix = prefix + ((size > 0) ? "|  " : "   ");
+
+                if (item == null)
+                    output += string.Format("{0}<ERROR>", newPrefix);
+                else
+                    output += string.Format("{0}", item.toString(newPrefix));
+            }
+
+            return output;
         }
     }
 
@@ -27,7 +111,14 @@ namespace CO2.RetroCPL.FrontEnd
         // | translation_unit external_declaration
         // ;
 
-        public TranslationUnitSTN() { }
+        public TranslationUnitSTN(int rule, int line) : base(rule, line) { }
+        public TranslationUnitSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ExternalDeclarationSTN : SyntaxTreeNode
@@ -35,6 +126,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : declaration
         // | function_definition
         // ;
+
+        public ExternalDeclarationSTN(int rule, int line) : base(rule, line) { }
+        public ExternalDeclarationSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class DeclarationSTN : SyntaxTreeNode
@@ -42,6 +142,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : declaration_specifiers C_SC
         // | declaration_specifiers init_declarator_list C_SC
         // ;
+
+        public DeclarationSTN(int rule, int line) : base(rule, line) { }
+        public DeclarationSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class FunctionDefinitionSTN : SyntaxTreeNode
@@ -51,6 +160,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | direct_declarator declaration_list compound_statement
         // | direct_declarator compound_statement
         // ;
+        
+        public FunctionDefinitionSTN(int rule, int line) : base(rule, line) { }
+        public FunctionDefinitionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+        
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class DeclarationSpecifiersSTN : SyntaxTreeNode
@@ -60,6 +178,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | type_qualifier
         // | type_qualifier declaration_specifiers
         // ;
+        
+        public DeclarationSpecifiersSTN(int rule, int line) : base(rule, line) { }
+        public DeclarationSpecifiersSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+        
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class InitDeclaratorListSTN : SyntaxTreeNode
@@ -67,6 +194,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : init_declarator
         // | init_declarator_list C_CM init_declarator
         // ;
+
+        public InitDeclaratorListSTN(int rule, int line) : base(rule, line) { }
+        public InitDeclaratorListSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class DirectDeclaratorSTN : SyntaxTreeNode
@@ -78,6 +214,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | direct_declarator C_OP C_CP
         // | direct_declarator C_OB constant_expression C_CB
         // ;
+
+        public DirectDeclaratorSTN(int rule, int line) : base(rule, line) { }
+        public DirectDeclaratorSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class DeclarationListSTN : SyntaxTreeNode
@@ -87,6 +232,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | error declaration
         // | declaration_list error declaration
         // ;
+
+        public DeclarationListSTN(int rule, int line) : base(rule, line) { }
+        public DeclarationListSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class CompoundStatementSTN : SyntaxTreeNode
@@ -96,6 +250,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | C_OK declaration_list C_CK
         // | C_OK declaration_list statement_list C_CK
         // ;
+
+        public CompoundStatementSTN(int rule, int line) : base(rule, line) { }
+        public CompoundStatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class TypeSpecifierSTN : SyntaxTreeNode
@@ -106,6 +269,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | SIGNED
         // | UNSIGNED
         // ;
+
+        public TypeSpecifierSTN(int rule, int line) : base(rule, line) { }
+        public TypeSpecifierSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class TypeQualifierSTN : SyntaxTreeNode
@@ -114,6 +286,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | VOLATILE
         // | INTERRUPT
         // ;
+
+        public TypeQualifierSTN(int rule, int line) : base(rule, line) { }
+        public TypeQualifierSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class InitDeclaratorSTN : SyntaxTreeNode
@@ -121,6 +302,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : direct_declarator
         // | direct_declarator C_ES initializer
         // ;
+
+        public InitDeclaratorSTN(int rule, int line) : base(rule, line) { }
+        public InitDeclaratorSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ParameterListSTN : SyntaxTreeNode
@@ -128,6 +318,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : parameter_declaration
         // | parameter_list C_CM parameter_declaration
         // ;
+
+        public ParameterListSTN(int rule, int line) : base(rule, line) { }
+        public ParameterListSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class IdentifierListSTN : SyntaxTreeNode
@@ -135,12 +334,30 @@ namespace CO2.RetroCPL.FrontEnd
         // : IDENTIFIER
         // | identifier_list C_CM IDENTIFIER
         // ;
+
+        public IdentifierListSTN(int rule, int line) : base(rule, line) { }
+        public IdentifierListSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ConstantExpressionSTN : SyntaxTreeNode
     {
         // : conditional_expression
         // ;
+
+        public ConstantExpressionSTN(int rule, int line) : base(rule, line) { }
+        public ConstantExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class StatementListSTN : SyntaxTreeNode
@@ -148,12 +365,30 @@ namespace CO2.RetroCPL.FrontEnd
         // : statement
         // | statement_list statement
         // ;
+
+        public StatementListSTN(int rule, int line) : base(rule, line) { }
+        public StatementListSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class InitializerSTN : SyntaxTreeNode
     {
         // : assignment_expression
         // ;
+
+        public InitializerSTN(int rule, int line) : base(rule, line) { }
+        public InitializerSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ParameterDeclarationSTN : SyntaxTreeNode
@@ -161,6 +396,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : declaration_specifiers direct_declarator
         // | declaration_specifiers
         // ;
+
+        public ParameterDeclarationSTN(int rule, int line) : base(rule, line) { }
+        public ParameterDeclarationSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ConditionalExpressionSTN : SyntaxTreeNode
@@ -168,6 +412,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : logical_or_expression
         // | logical_or_expression C_QM expression C_DP conditional_expression
         // ;
+
+        public ConditionalExpressionSTN(int rule, int line) : base(rule, line) { }
+        public ConditionalExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class StatementSTN : SyntaxTreeNode
@@ -178,6 +431,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | iteration_statement
         // | jump_statement
         // ;
+
+        public StatementSTN(int rule, int line) : base(rule, line) { }
+        public StatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class AssignmentExpressionSTN : SyntaxTreeNode
@@ -186,6 +448,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | unary_expression assignment_operator assignment_expression
         // | unary_expression LEFT_ARROW assignment_expression
         // ;
+
+        public AssignmentExpressionSTN(int rule, int line) : base(rule, line) { }
+        public AssignmentExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class LogicalOrExpressionSTN : SyntaxTreeNode
@@ -193,6 +464,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : logical_and_expression
         // | logical_or_expression OR_OP logical_and_expression
         // ;
+
+        public LogicalOrExpressionSTN(int rule, int line) : base(rule, line) { }
+        public LogicalOrExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ExpressionSTN : SyntaxTreeNode
@@ -200,6 +480,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : assignment_expression
         // | expression C_CM assignment_expression
         // ;
+
+        public ExpressionSTN(int rule, int line) : base(rule, line) { }
+        public ExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class LabeledStatementSTN : SyntaxTreeNode
@@ -208,6 +497,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | CASE constant_expression C_DP statement
         // | DEFAULT C_DP statement
         // ;
+
+        public LabeledStatementSTN(int rule, int line) : base(rule, line) { }
+        public LabeledStatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ExpressionStatementSTN : SyntaxTreeNode
@@ -215,6 +513,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : C_SC
         // | expression C_SC
         // ;
+
+        public ExpressionStatementSTN(int rule, int line) : base(rule, line) { }
+        public ExpressionStatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class SelectionStatementSTN : SyntaxTreeNode
@@ -223,6 +530,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | IF C_OP expression C_CP compound_statement ELSE compound_statement
         // | SWITCH C_OP expression C_CP compound_statement
         // ;
+
+        public SelectionStatementSTN(int rule, int line) : base(rule, line) { }
+        public SelectionStatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class IterationStatementSTN : SyntaxTreeNode
@@ -232,6 +548,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | FOR C_OP expression_statement expression_statement C_CP statement
         // | FOR C_OP expression_statement expression_statement expression C_CP statement
         // ;
+
+        public IterationStatementSTN(int rule, int line) : base(rule, line) { }
+        public IterationStatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class JumpStatementSTN : SyntaxTreeNode
@@ -242,6 +567,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | RETURN C_SC
         // | RETURN expression C_SC
         // ;
+
+        public JumpStatementSTN(int rule, int line) : base(rule, line) { }
+        public JumpStatementSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class UnaryExpressionSTN : SyntaxTreeNode
@@ -255,6 +589,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | LOBYTE unary_expression
         // | HIBYTE unary_expression
         // ;
+
+        public UnaryExpressionSTN(int rule, int line) : base(rule, line) { }
+        public UnaryExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class AssignmentOperatorSTN : SyntaxTreeNode
@@ -271,6 +614,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | XOR_ASSIGN
         // | OR_ASSIGN
         // ;
+
+        public AssignmentOperatorSTN(int rule, int line) : base(rule, line) { }
+        public AssignmentOperatorSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class LogicalAndExpressionSTN : SyntaxTreeNode
@@ -278,6 +630,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : inclusive_or_expression
         // | logical_and_expression AND_OP inclusive_or_expression
         // ;
+
+        public LogicalAndExpressionSTN(int rule, int line) : base(rule, line) { }
+        public LogicalAndExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class PostfixExpressionSTN : SyntaxTreeNode
@@ -289,6 +650,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | postfix_expression INC_OP
         // | postfix_expression DEC_OP
         // ;
+
+        public PostfixExpressionSTN(int rule, int line) : base(rule, line) { }
+        public PostfixExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class UnaryOperatorSTN : SyntaxTreeNode
@@ -300,6 +670,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | C_NS
         // | C_EM
         // ;
+
+        public UnaryOperatorSTN(int rule, int line) : base(rule, line) { }
+        public UnaryOperatorSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class CastExpressionSTN : SyntaxTreeNode
@@ -307,6 +686,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : unary_expression
         // | C_OP type_specifier C_CP cast_expression
         // ;
+
+        public CastExpressionSTN(int rule, int line) : base(rule, line) { }
+        public CastExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class PrimaryExpressionSTN : SyntaxTreeNode
@@ -316,6 +704,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | STRING_LITERAL
         // | C_OP expression C_CP
         // ;
+
+        public PrimaryExpressionSTN(int rule, int line) : base(rule, line) { }
+        public PrimaryExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class InclusiveOrExpressionSTN : SyntaxTreeNode
@@ -323,6 +720,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : exclusive_or_expression
         // | inclusive_or_expression C_PP exclusive_or_expression
         // ;
+
+        public InclusiveOrExpressionSTN(int rule, int line) : base(rule, line) { }
+        public InclusiveOrExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ArgumentExpressionListSTN : SyntaxTreeNode
@@ -330,6 +736,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : assignment_expression
         // | argument_expression_list C_CM assignment_expression
         // ;
+
+        public ArgumentExpressionListSTN(int rule, int line) : base(rule, line) { }
+        public ArgumentExpressionListSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ExclusiveOrExpressionSTN : SyntaxTreeNode
@@ -337,6 +752,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : and_expression
         // | exclusive_or_expression C_UA and_expression
         // ;
+
+        public ExclusiveOrExpressionSTN(int rule, int line) : base(rule, line) { }
+        public ExclusiveOrExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class AndExpressionSTN : SyntaxTreeNode
@@ -344,6 +768,15 @@ namespace CO2.RetroCPL.FrontEnd
         // : equality_expression
         // | and_expression C_A equality_expression
         // ;
+
+        public AndExpressionSTN(int rule, int line) : base(rule, line) { }
+        public AndExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class EqualityExpressionSTN : SyntaxTreeNode
@@ -352,6 +785,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | equality_expression EQ_OP relational_expression
         // | equality_expression NE_OP relational_expression
         // ;
+
+        public EqualityExpressionSTN(int rule, int line) : base(rule, line) { }
+        public EqualityExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class RelationalExpressionSTN : SyntaxTreeNode
@@ -362,6 +804,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | relational_expression LE_OP shift_expression
         // | relational_expression GE_OP shift_expression
         // ;
+
+        public RelationalExpressionSTN(int rule, int line) : base(rule, line) { }
+        public RelationalExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class ShiftExpressionSTN : SyntaxTreeNode
@@ -370,6 +821,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | shift_expression LEFT_OP additive_expression
         // | shift_expression RIGHT_OP additive_expression
         // ;
+
+        public ShiftExpressionSTN(int rule, int line) : base(rule, line) { }
+        public ShiftExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class AdditiveExpressionSTN : SyntaxTreeNode
@@ -378,6 +838,15 @@ namespace CO2.RetroCPL.FrontEnd
         // | additive_expression C_PS multiplicative_expression
         // | additive_expression C_MS multiplicative_expression
         // ;
+
+        public AdditiveExpressionSTN(int rule, int line) : base(rule, line) { }
+        public AdditiveExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 
     public class MultiplicativeExpressionSTN : SyntaxTreeNode
@@ -387,5 +856,92 @@ namespace CO2.RetroCPL.FrontEnd
         // | multiplicative_expression C_SS cast_expression { /* Not supported by 6502 */ }
         // | multiplicative_expression C_PC cast_expression { /* Not supported by 6502 */ }
         // ;
+
+        public MultiplicativeExpressionSTN(int rule, int line) : base(rule, line) { }
+        public MultiplicativeExpressionSTN(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
+    }
+
+    public class IdentifierSTL : SyntaxTreeNode
+    {
+        public IdentifierSTL(int rule, int line) : base(rule, line)
+        {
+            lex = SymbolsTable.Instance.popTempIdentifier();
+        }
+        public IdentifierSTL(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children)
+        {
+            lex = SymbolsTable.Instance.popTempIdentifier();
+        }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
+
+    }
+
+    public class NumberLiteralSTL : SyntaxTreeNode
+    {
+        public NumberLiteralSTL(int rule, int line) : base(rule, line)
+        {
+            getLiteralValue();
+        }
+        public NumberLiteralSTL(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children)
+        {
+            getLiteralValue();
+        }
+
+        private void getLiteralValue()
+        {
+            string newLiteral = SymbolsTable.Instance.popTempLiteral();
+            type.type   = Constants.TYPE_LITERAL;
+		    valueIsUsed = true;
+            
+            if(newLiteral[0] == '0' && newLiteral.Length > 1)
+            {
+			    if(newLiteral[1] == 'x')
+                    value = Convert.ToInt32(newLiteral, 16); //Hex
+                else
+				    value = Convert.ToInt32(newLiteral, 8);  //Oct
+		    }
+            else if(newLiteral[0] != '\'')
+                value = Convert.ToInt32(newLiteral);         //Decimal
+		    else
+            {
+                if (newLiteral.Length != 3)                  // Char
+                    addError(ErrorMessages.ERR_SEM_MSG_05, newLiteral, line);
+			    else
+                {
+				    value           = (int) newLiteral[1];
+				    type.type       = "byte";
+                    type.b_unsigned = true;
+			    }
+            }
+        }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
+
+    }
+
+    public class StringLiteralSTL : SyntaxTreeNode
+    {
+        public StringLiteralSTL(int rule, int line) : base(rule, line) { }
+        public StringLiteralSTL(int rule, int line, SyntaxTreeNode[] children) : base(rule, line, children) { }
+
+        public override QualifiedType typeCheck()
+        {
+            //TODO
+            return new QualifiedType();
+        }
     }
 }

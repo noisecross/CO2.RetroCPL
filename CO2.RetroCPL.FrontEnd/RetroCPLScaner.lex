@@ -4,6 +4,7 @@
 * | File: RetroCPLScaner.lex                 |
 * | v1.00, December 2017                     |
 * | Author: Emilio Arango Delgado de Mendoza |
+* | Based in Jeff Lee's work (1985)          |
 * |------------------------------------------|
 */
 
@@ -14,7 +15,7 @@
 %option stack, minimize, parser, verbose, persistbuffer, unicode, compressNext, embedbuffers
 
 %{
-	ScanerHelper helper = new ScanerHelper();
+	public ScanerHelper helper = new ScanerHelper();
 
 	public override void yyerror(string format, params object[] args)
 	{
@@ -76,11 +77,12 @@ Eol			(\r\n?|\n)
 	[^*\n]+				{ helper.count(yytext);                               }
 	"*"					{ helper.count(yytext);                               }
 	{EndComment}		{ helper.count(yytext); yy_pop_state();               }
-	<<EOF>>				{ helper.lexErr("TODO", yytext); /* TODO */           }
+	<<EOF>>				{ helper.lexErr(ErrorMessages.ERR_LEX_MSG_02, yytext);}
 }
 
 "auto"					{ helper.count(yytext); return(int) Tokens.AUTO;      }
 "break"					{ helper.count(yytext); return(int) Tokens.BREAK;     }
+"byte"					{ helper.count(yytext); return(int) Tokens.BYTE;      }
 "case"					{ helper.count(yytext); return(int) Tokens.CASE;      }
 "const"					{ helper.count(yytext); return(int) Tokens.CONST;     }
 "continue"				{ helper.count(yytext); return(int) Tokens.CONTINUE;  }
@@ -93,6 +95,7 @@ Eol			(\r\n?|\n)
 "goto"					{ helper.count(yytext); return(int) Tokens.GOTO;      }
 "if"					{ helper.count(yytext); return(int) Tokens.IF;        }
 "interrupt"				{ helper.count(yytext); return(int) Tokens.INTERRUPT; }
+"longword"				{ helper.count(yytext); return(int) Tokens.LONGWORD;  }
 "register"				{ helper.count(yytext); return(int) Tokens.REGISTER;  }
 "return"				{ helper.count(yytext); return(int) Tokens.RETURN;    }
 "signed"				{ helper.count(yytext); return(int) Tokens.SIGNED;    }
@@ -103,15 +106,17 @@ Eol			(\r\n?|\n)
 "typedef"				{ helper.count(yytext); return(int) Tokens.TYPEDEF;   }
 "union"					{ helper.count(yytext); return(int) Tokens.UNION;     }
 "unsigned"				{ helper.count(yytext); return(int) Tokens.UNSIGNED;  }
+"void"                  { helper.count(yytext); return(int) Tokens.VOID;      }
 "volatile"				{ helper.count(yytext); return(int) Tokens.VOLATILE;  }
 "while"					{ helper.count(yytext); return(int) Tokens.WHILE;     }
+"word"					{ helper.count(yytext); return(int) Tokens.WORD;      }
 
 {L}({L}|{D})*			{ helper.count(yytext); return(helper.checkTypeOrIdentifier(yytext, yyleng));         }
 
 {HexLiteral}			{ helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.NUMBER_LITERAL; }
 {OctalLiteral}			{ helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.NUMBER_LITERAL; }
 {IntegerLiteral}		{ helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.NUMBER_LITERAL; }
-{CharLiteral}			{ helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.STRING_LITERAL; }
+{CharLiteral}			{ helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.NUMBER_LITERAL; }
 {StringLiteral}			{ helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.STRING_LITERAL; }
 
 "<-"					{ helper.count(yytext); return(int) Tokens.LEFT_ARROW;   }
@@ -162,5 +167,5 @@ Eol			(\r\n?|\n)
 "?"						{ helper.count(yytext); return(int) Tokens.C_QM;         }
 
 [ \t\v\n\f\r]			{ helper.count(yytext); /* Ignore */   }
-.						{ helper.count(yytext); helper.lexErr("TODO", yytext); /* TODO */ }
+.						{ helper.count(yytext); helper.lexErr(ErrorMessages.ERR_LEX_MSG_00, yytext); }
 %%
