@@ -5,10 +5,10 @@
 //  See accompanying file GPLEXcopyright.rtf.
 //
 //  GPLEX Version:  1.2.2
-//  Machine:  NEUROLAPTOP
-//  DateTime: 04/01/2018 11:16:54
-//  UserName: Nekros
-//  GPLEX input file <RetroCPLScaner.lex - 04/01/2018 11:14:14>
+//  Machine:  GIST11RW
+//  DateTime: 09/01/2018 14:37:59
+//  UserName: soporte0
+//  GPLEX input file <RetroCPLScaner.lex - 09/01/2018 14:25:03>
 //  GPLEX frame file <embedded resource>
 //
 //  Option settings: unicode, verbose, parser, stack, minimize
@@ -126,8 +126,8 @@ namespace CO2.RetroCPL.FrontEnd
         
         enum Result {accept, noMatch, contextFound};
 
-        const int maxAccept = 210;
-        const int initial = 211;
+        const int maxAccept = 212;
+        const int initial = 213;
         const int eofNum = 0;
         const int goStart = -1;
         const int INITIAL = 0;
@@ -146,10 +146,10 @@ namespace CO2.RetroCPL.FrontEnd
 */
 public ScanerHelper helper = new ScanerHelper();
 
-	public override void yyerror(string format, params object[] args)
-	{
-		helper.lexErr(format, yytext);
-	}
+    public override void yyerror(string format, params object[] args)
+    {
+        helper.lexErr(format, yytext);
+    }
 #endregion user code
 
         int state;
@@ -181,7 +181,7 @@ public ScanerHelper helper = new ScanerHelper();
         }
     };
 
-    static int[] startState = new int[] {211, 218, 219, 0};
+    static int[] startState = new int[] {213, 220, 221, 0};
 
 #region CompressedCharacterMap
     //
@@ -210,7 +210,7 @@ public ScanerHelper helper = new ScanerHelper();
     }
 #endregion
 
-    static Table[] NxS = new Table[220] {
+    static Table[] NxS = new Table[222] {
 /* NxS[   0] */ new Table(0, 0, 0, null), // Shortest string ""
 /* NxS[   1] */ new Table(0, 0, -1, null), // Shortest string "\r"
 /* NxS[   2] */ // Shortest string "/"
@@ -290,16 +290,16 @@ public ScanerHelper helper = new ScanerHelper();
           -1, -1, 21, 21, -1, -1, 70, 70}),
 /* NxS[  22] */ // Shortest string "0"
       new Table(6, 30, -1, new short[] {70, -1, -1, -1, -1, -1, 
-          -1, -1, -1, -1, -1, -1, -1, -1, 70, -1, 217, -1, -1, -1, -1, -1, 
-          -1, -1, 71, 71, 217, -1, 70, 70}),
+          -1, -1, -1, -1, -1, -1, -1, -1, 70, -1, 219, -1, -1, -1, -1, -1, 
+          -1, -1, 71, 71, 219, -1, 70, 70}),
 /* NxS[  23] */ // Shortest string "L"
-      new Table(36, 31, 8, new short[] {216, -1, 212, -1, -1, -1, 
+      new Table(36, 31, 8, new short[] {218, -1, 214, -1, -1, -1, 
           -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
           -1, -1, -1, -1, -1, -1, -1, -1, -1}),
 /* NxS[  24] */ // Shortest string "'"
-      new Table(36, 2, 214, new short[] {-1, 215}),
+      new Table(36, 2, 216, new short[] {-1, 217}),
 /* NxS[  25] */ // Shortest string "\""
-      new Table(37, 2, 212, new short[] {213, 68}),
+      new Table(37, 2, 214, new short[] {215, 68}),
 /* NxS[  26] */ // Shortest string "<"
       new Table(39, 15, -1, new short[] {64, 65, -1, 66, -1, 37, 
           -1, -1, -1, -1, -1, -1, -1, -1, 43}),
@@ -891,38 +891,41 @@ public ScanerHelper helper = new ScanerHelper();
       new Table(0, 1, 203, new short[] {-1}),
 /* NxS[ 204] */ new Table(0, 0, -1, null), // Shortest string "/*"
 /* NxS[ 205] */ new Table(0, 0, -1, null), // Shortest string "/="
-/* NxS[ 206] */ // Shortest string "/"
-      new Table(0, 5, 206, new short[] {-1, 206, 206, 206, -1}),
-/* NxS[ 207] */ // Shortest string "*"
-      new Table(1, 1, -1, new short[] {208}),
-/* NxS[ 208] */ new Table(0, 0, -1, null), // Shortest string "*/"
-/* NxS[ 209] */ new Table(0, 0, -1, null), // Shortest string ""
-/* NxS[ 210] */ // Shortest string "\r"
-      new Table(0, 1, -1, new short[] {209}),
-/* NxS[ 211] */ // Shortest string ""
+/* NxS[ 206] */ new Table(0, 0, -1, null), // Shortest string ""
+/* NxS[ 207] */ // Shortest string "/"
+      new Table(0, 5, 207, new short[] {-1, 207, 207, 207, -1}),
+/* NxS[ 208] */ // Shortest string "\r"
+      new Table(0, 5, 207, new short[] {206, 207, 207, 207, -1}),
+/* NxS[ 209] */ // Shortest string "*"
+      new Table(1, 1, -1, new short[] {210}),
+/* NxS[ 210] */ new Table(0, 0, -1, null), // Shortest string "*/"
+/* NxS[ 211] */ new Table(0, 0, -1, null), // Shortest string ""
+/* NxS[ 212] */ // Shortest string "\r"
+      new Table(0, 1, -1, new short[] {211}),
+/* NxS[ 213] */ // Shortest string ""
       new Table(35, 59, 8, new short[] {23, 24, 3, 25, 26, 27, 
           28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 
           44, 45, 46, 47, 1, 1, 2, 3, 1, 4, 5, 6, 7, 8, 9, 10, 
           11, 8, 8, 12, 13, 8, 14, 15, 16, 17, 8, 8, 18, 8, 19, 8, 
           8, 20, 8, 21, 22}),
-/* NxS[ 212] */ // Shortest string "L\""
-      new Table(37, 2, 212, new short[] {213, 68}),
-/* NxS[ 213] */ // Shortest string "\"\\"
-      new Table(0, 1, 212, new short[] {-1}),
-/* NxS[ 214] */ // Shortest string "'/"
-      new Table(36, 2, 214, new short[] {69, 215}),
-/* NxS[ 215] */ // Shortest string "'\\"
+/* NxS[ 214] */ // Shortest string "L\""
+      new Table(37, 2, 214, new short[] {215, 68}),
+/* NxS[ 215] */ // Shortest string "\"\\"
       new Table(0, 1, 214, new short[] {-1}),
-/* NxS[ 216] */ // Shortest string "L'"
-      new Table(36, 2, 214, new short[] {-1, 215}),
-/* NxS[ 217] */ // Shortest string "0x"
+/* NxS[ 216] */ // Shortest string "'/"
+      new Table(36, 2, 216, new short[] {69, 217}),
+/* NxS[ 217] */ // Shortest string "'\\"
+      new Table(0, 1, 216, new short[] {-1}),
+/* NxS[ 218] */ // Shortest string "L'"
+      new Table(36, 2, 216, new short[] {-1, 217}),
+/* NxS[ 219] */ // Shortest string "0x"
       new Table(5, 29, -1, new short[] {73, -1, -1, -1, 73, -1, 
           73, -1, -1, 73, -1, -1, -1, 73, 73, -1, -1, -1, -1, -1, -1, -1, 
           -1, -1, -1, 73, 73, -1, 73}),
-/* NxS[ 218] */ // Shortest string ""
-      new Table(0, 5, 206, new short[] {-1, 206, 206, 206, 207}),
-/* NxS[ 219] */ // Shortest string ""
-      new Table(0, 4, -1, new short[] {209, -1, -1, 210}),
+/* NxS[ 220] */ // Shortest string ""
+      new Table(0, 5, 207, new short[] {206, 207, 207, 208, 209}),
+/* NxS[ 221] */ // Shortest string ""
+      new Table(0, 4, -1, new short[] {211, -1, -1, 212}),
     };
 
 int NextState() {
@@ -1353,8 +1356,8 @@ int NextState() {
     {
         case eofNum:
             switch (currentStart) {
-                case 218:
-helper.lexErr(ErrorMessages.ERR_LEX_MSG_02, yytext);
+                case 220:
+helper.count(yytext); helper.lexErr(ErrorMessages.ERR_LEX_MSG_02, yytext);
                     break;
             }
             if (yywrap())
@@ -1364,7 +1367,7 @@ helper.lexErr(ErrorMessages.ERR_LEX_MSG_02, yytext);
 helper.count(yytext); /* Ignore */
             break;
         case 2: // Recognized '"/"',	Shortest string "/"
-helper.count(yytext); return(int) Tokens.C_SS;
+helper.count(yytext); return(int) '/';
             break;
         case 3: // Recognized '.',	Shortest string "\0"
         case 24: // Recognized '.',	Shortest string "'"
@@ -1372,7 +1375,7 @@ helper.count(yytext); return(int) Tokens.C_SS;
 helper.count(yytext); helper.lexErr(ErrorMessages.ERR_LEX_MSG_00, yytext);
             break;
         case 4: // Recognized '"*"',	Shortest string "*"
-helper.count(yytext); return(int) Tokens.C_AK;
+helper.count(yytext); return(int) '*';
             break;
         case 5: // Recognized '{L}({L}|{D})*',	Shortest string "a"
         case 6: // Recognized '{L}({L}|{D})*',	Shortest string "u"
@@ -1496,70 +1499,70 @@ helper.count(yytext); return(helper.checkTypeOrIdentifier(yytext, yyleng));
 helper.count(yytext); helper.newLiteral(yytext); return(int) Tokens.NUMBER_LITERAL;
             break;
         case 26: // Recognized '"<"',	Shortest string "<"
-helper.count(yytext); return(int) Tokens.C_LT;
+helper.count(yytext); return(int) '<';
             break;
         case 27: // Recognized '"-"',	Shortest string "-"
-helper.count(yytext); return(int) Tokens.C_MS;
+helper.count(yytext); return(int) '-';
             break;
         case 28: // Recognized '">"',	Shortest string ">"
-helper.count(yytext); return(int) Tokens.C_GT;
+helper.count(yytext); return(int) '>';
             break;
         case 29: // Recognized '"="',	Shortest string "="
-helper.count(yytext); return(int) Tokens.C_ES;
+helper.count(yytext); return(int) '=';
             break;
         case 30: // Recognized '"+"',	Shortest string "+"
-helper.count(yytext); return(int) Tokens.C_PS;
+helper.count(yytext); return(int) '+';
             break;
         case 31: // Recognized '"%"',	Shortest string "%"
-helper.count(yytext); return(int) Tokens.C_PC;
+helper.count(yytext); return(int) '%';
             break;
         case 32: // Recognized '"&"',	Shortest string "&"
-helper.count(yytext); return(int) Tokens.C_A;
+helper.count(yytext); return(int) '&';
             break;
         case 33: // Recognized '"^"',	Shortest string "^"
-helper.count(yytext); return(int) Tokens.C_UA;
+helper.count(yytext); return(int) '^';
             break;
         case 34: // Recognized '"|"',	Shortest string "|"
-helper.count(yytext); return(int) Tokens.C_PP;
+helper.count(yytext); return(int) '|';
             break;
         case 35: // Recognized '"!"',	Shortest string "!"
-helper.count(yytext); return(int) Tokens.C_EM;
+helper.count(yytext); return(int) '!';
             break;
         case 36: // Recognized '";"',	Shortest string ";"
-helper.count(yytext); return(int) Tokens.C_SC;
+helper.count(yytext); return(int) ';';
             break;
         case 37: // Recognized '("{"|"<%")',	Shortest string "{"
-helper.count(yytext); return(int) Tokens.C_OK;
+helper.count(yytext); return(int) '{';
             break;
         case 38: // Recognized '("}"|"%>")',	Shortest string "}"
-helper.count(yytext); return(int) Tokens.C_CK;
+helper.count(yytext); return(int) '}';
             break;
         case 39: // Recognized '","',	Shortest string ","
-helper.count(yytext); return(int) Tokens.C_CM;
+helper.count(yytext); return(int) ',';
             break;
         case 40: // Recognized '":"',	Shortest string ":"
-helper.count(yytext); return(int) Tokens.C_DP;
+helper.count(yytext); return(int) ':';
             break;
         case 41: // Recognized '"("',	Shortest string "("
-helper.count(yytext); return(int) Tokens.C_OP;
+helper.count(yytext); return(int) '(';
             break;
         case 42: // Recognized '")"',	Shortest string ")"
-helper.count(yytext); return(int) Tokens.C_CP;
+helper.count(yytext); return(int) ')';
             break;
         case 43: // Recognized '("["|"<:")',	Shortest string "["
-helper.count(yytext); return(int) Tokens.C_OB;
+helper.count(yytext); return(int) '[';
             break;
         case 44: // Recognized '("]"|":>")',	Shortest string "]"
-helper.count(yytext); return(int) Tokens.C_CB;
+helper.count(yytext); return(int) ']';
             break;
         case 45: // Recognized '"."',	Shortest string "."
-helper.count(yytext); return(int) Tokens.C_P;
+helper.count(yytext); return(int) '.';
             break;
         case 46: // Recognized '"~"',	Shortest string "~"
-helper.count(yytext); return(int) Tokens.C_NS;
+helper.count(yytext); return(int) '~';
             break;
         case 47: // Recognized '"?"',	Shortest string "?"
-helper.count(yytext); return(int) Tokens.C_QM;
+helper.count(yytext); return(int) '?';
             break;
         case 48: // Recognized '"!="',	Shortest string "!="
 helper.count(yytext); return(int) Tokens.NE_OP;
@@ -1729,26 +1732,30 @@ helper.count(yytext); return(int) Tokens.AUTO;
 helper.count(yytext); return(int) Tokens.MUL_ASSIGN;
             break;
         case 203: // Recognized '{LineComment}+',	Shortest string "//"
-helper.count(yytext); yy_push_state (CMMT2);
+yy_push_state (CMMT2);
             break;
         case 204: // Recognized '{StartComment}',	Shortest string "/*"
-helper.count(yytext); yy_push_state (CMMT);
+yy_push_state (CMMT);
             break;
         case 205: // Recognized '"/="',	Shortest string "/="
 helper.count(yytext); return(int) Tokens.DIV_ASSIGN;
             break;
-        case 206: // In <CMMT> Recognized '[^*\n]+',	Shortest string "/"
+        case 206: // In <CMMT> Recognized '{Eol}',	Shortest string ""
+        case 208: // In <CMMT> Recognized '{Eol}',	Shortest string "\r"
+helper.incrementLine(yytext);
+            break;
+        case 207: // In <CMMT> Recognized '[^*\n]+',	Shortest string "/"
 helper.count(yytext);
             break;
-        case 207: // In <CMMT> Recognized '"*"',	Shortest string "*"
+        case 209: // In <CMMT> Recognized '"*"',	Shortest string "*"
 helper.count(yytext);
             break;
-        case 208: // In <CMMT> Recognized '{EndComment}',	Shortest string "*/"
+        case 210: // In <CMMT> Recognized '{EndComment}',	Shortest string "*/"
 helper.count(yytext); yy_pop_state();
             break;
-        case 209: // In <CMMT2> Recognized '{Eol}',	Shortest string ""
-        case 210: // In <CMMT2> Recognized '{Eol}',	Shortest string "\r"
-helper.count(yytext); yy_pop_state ();
+        case 211: // In <CMMT2> Recognized '{Eol}',	Shortest string ""
+        case 212: // In <CMMT2> Recognized '{Eol}',	Shortest string "\r"
+helper.incrementLine(yytext); yy_pop_state ();
             break;
         default:
             break;

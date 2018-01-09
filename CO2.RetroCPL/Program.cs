@@ -25,6 +25,13 @@ namespace CO2.RetroCPL
 
 
 
+        /// <summary>
+        /// Code went to this compiler because it
+        /// wanted to live deliberately...
+        /// It wanted to live deep and suck
+        /// out all the marrow of Retro Consoles!
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             int output = 0;
@@ -73,9 +80,11 @@ namespace CO2.RetroCPL
 
                 if (ErrManager.Instance.existsError())
                     Console.WriteLine(ErrManager.Instance.toString());
-
-                Console.WriteLine(SyntaxTree.toString());
-                Console.WriteLine(SymbolsTable.Instance.toString());
+                else
+                {
+                    Console.WriteLine(SyntaxTree.toString());
+                    Console.WriteLine(SymbolsTable.Instance.toString());
+                }
 
                 //program = parser.program;
 

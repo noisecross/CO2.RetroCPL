@@ -1,4 +1,12 @@
-﻿using System;
+﻿/**
+* |------------------------------------------|
+* | CO2.RetroCPL COMPILER OPTIMIZER 2 RETROC |
+* | File: STEntry.cs                         |
+* | v1.00, January 2018                      |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,14 +15,19 @@ namespace CO2.RetroCPL.Commons
 {
     public class STEntry
     {
-        public string lex;
+        public string        lex;
         public QualifiedType qType;
-        public string framework;
-        public int n_uses;
-        public bool isLiteral;
-        public bool isOverlappable;
-        public int address;
+        public string        framework;
+        public int           n_uses;
+        public bool          isLiteral;
+        public bool          isOverlappable;
+        public int           address;
 
+        /// <summary>
+        /// Class constructor.
+        /// </summary>
+        /// <param name="inLex">New symbol lexeme.</param>
+        /// <param name="inFramework">Framework where this symbol is operational.</param>
         public STEntry(string inLex, string inFramework)
         {
             lex = inLex;
@@ -25,6 +38,12 @@ namespace CO2.RetroCPL.Commons
             address = -1;
         }
 
+        /// <summary>
+        /// Class constructor.
+        /// </summary>
+        /// <param name="inLex">New symbol lexeme.</param>
+        /// <param name="inFramework">Framework where this symbol is operational.</param>
+        /// <param name="type">Type of the symbol.</param>
         public STEntry(string inLex, string inFramework, QualifiedType type)
         {
             lex = inLex;
@@ -36,6 +55,10 @@ namespace CO2.RetroCPL.Commons
             address = -1;
         }
 
+        /// <summary>
+        /// Returns a string containing the text formated symbol.
+        /// </summary>
+        /// <returns>String containing the text formated symbol.</returns>
         public string toString()
         {
             string output = string.Empty;
@@ -60,6 +83,12 @@ namespace CO2.RetroCPL.Commons
             return output;
         }
 
+        /// <summary>
+        /// Auxiliar method. Truncates a string.
+        /// </summary>
+        /// <param name="input">The input string to truncate.</param>
+        /// <param name="size">The max size of the output.</param>
+        /// <returns>The truncated string.</returns>
         private string substr(string input, int size)
         {
             return input.Substring(0, Math.Min(size, input.Length));

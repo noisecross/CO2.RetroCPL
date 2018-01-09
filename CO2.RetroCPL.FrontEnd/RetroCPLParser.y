@@ -40,9 +40,6 @@
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN LEFT_ARROW
 %token XOR_ASSIGN OR_ASSIGN TYPE_NAME
 
-%token C_SC C_OK C_CK C_CM C_DP C_ES C_OP C_CP C_OB C_CB C_P C_A C_EM C_NS C_MS C_PS
-%token C_AK C_SS C_PC C_LT C_GT C_UA C_PP C_QM
-
 %token TYPEDEF EXTERN STATIC AUTO REGISTER
 %token BYTE WORD LONGWORD SIGNED UNSIGNED CONST VOID VOLATILE
 %token STRUCT UNION ENUM ELLIPSIS
@@ -67,43 +64,41 @@ external_declaration
 	;
 
 declaration
-	: declaration_specifiers C_SC                                                  { $$ = new DeclarationSTN(1, n_linecnt, new SyntaxTreeNode[] { $1 }    ); }
-	| declaration_specifiers init_declarator_list C_SC                             { $$ = new DeclarationSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $2 }); }
+	: declaration_specifiers ';'                                                   { $$ = new DeclarationSTN(1, n_linecnt, new SyntaxTreeNode[] { $1 }    ); }
+	| declaration_specifiers init_declarator_list ';'                              { $$ = new DeclarationSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $2 }); }
 	;
 
 function_definition
 	: declaration_specifiers direct_declarator declaration_list compound_statement { $$ = new FunctionDefinitionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $2, $3, $4 }); }
 	| declaration_specifiers direct_declarator compound_statement                  { $$ = new FunctionDefinitionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $2, $3     }); }
-	| direct_declarator declaration_list compound_statement                        { $$ = new FunctionDefinitionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $2, $3     }); }
-	| direct_declarator compound_statement                                         { $$ = new FunctionDefinitionSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $2         }); }
 	;
 
 error_end
-	: C_SC                                                                         { ; }
-	| C_CP                                                                         { ; }
-	| C_OK                                                                         { ; }
-	| C_CK                                                                         { ; }
+	: ';'                                                                          { ; }
+	| ')'                                                                          { ; }
+	| '{'                                                                          { ; }
+	| '}'                                                                          { ; }
 	;
 
 declaration_specifiers
 	: type_specifier                                                               { $$ = new DeclarationSpecifiersSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| type_specifier declaration_specifiers                                        { $$ = new DeclarationSpecifiersSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $2 }); }
+	| type_specifier declaration_specifiers                                        { $2.addChildren(new SyntaxTreeNode[] { $1 }); $$ = $2;                             }
 	| type_qualifier                                                               { $$ = new DeclarationSpecifiersSTN(3, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| type_qualifier declaration_specifiers                                        { $$ = new DeclarationSpecifiersSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $2 }); }
+	| type_qualifier declaration_specifiers                                        { $2.addChildren(new SyntaxTreeNode[] { $1 }); $$ = $2;                             }
 	;
 
 init_declarator_list
 	: init_declarator                                                              { $$ = new InitDeclaratorListSTN(1, n_linecnt, new SyntaxTreeNode[] { $1 }); }
-	| init_declarator_list C_CM init_declarator                                    { $1.addChildren(new SyntaxTreeNode[] { $3 }); $$ = $1;                      }
+	| init_declarator_list ',' init_declarator                                     { $1.addChildren(new SyntaxTreeNode[] { $3 }); $$ = $1;                      }
 	;
 
 direct_declarator
-	: IDENTIFIER                                                                   { $$ = new DirectDeclaratorSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt) });                                  }
-	| C_OP direct_declarator C_CP                                                  { $$ = new DirectDeclaratorSTN(2, n_linecnt, new SyntaxTreeNode[] { $1                              }); }
-	| direct_declarator C_OP parameter_list C_CP                                   { $$ = new DirectDeclaratorSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3                          }); }
-	| direct_declarator C_OP identifier_list C_CP                                  { $$ = new DirectDeclaratorSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $3                          }); }
-	| direct_declarator C_OP C_CP                                                  { $$ = new DirectDeclaratorSTN(5, n_linecnt, new SyntaxTreeNode[] { $1                              }); }
-	| direct_declarator C_OB constant_expression C_CB                              { $$ = new DirectDeclaratorSTN(6, n_linecnt, new SyntaxTreeNode[] { $1, $3                          }); }
+	: IDENTIFIER                                                                   { $$ = new DirectDeclaratorSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt)     });                                  }
+	| '(' direct_declarator ')'                                                    { $$ = new DirectDeclaratorSTN(2, n_linecnt, new SyntaxTreeNode[] { $1                                  }); }
+	| IDENTIFIER '(' parameter_list ')'                                            { $$ = new DirectDeclaratorSTN(3, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt), $3 }); }
+	| IDENTIFIER '(' identifier_list ')'                                           { $$ = new DirectDeclaratorSTN(4, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt), $3 }); }
+	| IDENTIFIER '(' ')'                                                           { $$ = new DirectDeclaratorSTN(5, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt)     }); }
+	| direct_declarator '[' constant_expression ']'                                { $$ = new DirectDeclaratorSTN(6, n_linecnt, new SyntaxTreeNode[] { $1, $3                              }); }
 	;
 
 declaration_list
@@ -114,40 +109,40 @@ declaration_list
 	;
 
 compound_statement
-	: C_OK C_CK                                                                    { $$ = new CompoundStatementSTN(1, n_linecnt);                                  }
-	| C_OK statement_list C_CK                                                     { $$ = new CompoundStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $2 });     }
-	| C_OK declaration_list C_CK                                                   { $$ = new CompoundStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $2 });     }
-	| C_OK declaration_list statement_list C_CK                                    { $$ = new CompoundStatementSTN(4, n_linecnt, new SyntaxTreeNode[] { $2, $3 }); }
+	: '{' '}'                                                                      { $$ = new CompoundStatementSTN(1, n_linecnt);                                  }
+	| '{' statement_list '}'                                                       { $$ = new CompoundStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $2 });     }
+	| '{' declaration_list '}'                                                     { $$ = new CompoundStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $2 });     }
+	| '{' declaration_list statement_list '}'                                      { $$ = new CompoundStatementSTN(4, n_linecnt, new SyntaxTreeNode[] { $2, $3 }); }
 	;
 
 type_specifier
-	: VOID                                                                         { $$ = new TypeSpecifierSTN(1, n_linecnt); }
-	| BYTE                                                                         { $$ = new TypeSpecifierSTN(2, n_linecnt); }
-	| WORD                                                                         { $$ = new TypeSpecifierSTN(3, n_linecnt); }
-	| LONGWORD                                                                     { $$ = new TypeSpecifierSTN(4, n_linecnt); }
-	| SIGNED                                                                       { $$ = new TypeSpecifierSTN(5, n_linecnt); }
-	| UNSIGNED                                                                     { $$ = new TypeSpecifierSTN(6, n_linecnt); }
+	: VOID                                                                         { $$ = new TypeSpecifierSTN(1, n_linecnt, "void");     }
+	| BYTE                                                                         { $$ = new TypeSpecifierSTN(2, n_linecnt, "byte");     }
+	| WORD                                                                         { $$ = new TypeSpecifierSTN(3, n_linecnt, "word");     }
+	| LONGWORD                                                                     { $$ = new TypeSpecifierSTN(4, n_linecnt, "longword"); }
+	| SIGNED                                                                       { $$ = new TypeSpecifierSTN(5, n_linecnt, "signed");   }
+	| UNSIGNED                                                                     { $$ = new TypeSpecifierSTN(6, n_linecnt, "unsigned"); }
 	;
 
 type_qualifier
-	: CONST                                                                        { $$ = new TypeQualifierSTN(1, n_linecnt); }
-	| VOLATILE                                                                     { $$ = new TypeQualifierSTN(2, n_linecnt); }
-	| INTERRUPT                                                                    { $$ = new TypeQualifierSTN(3, n_linecnt); }
+	: CONST                                                                        { $$ = new TypeQualifierSTN(1, n_linecnt, "const");     }
+	| VOLATILE                                                                     { $$ = new TypeQualifierSTN(2, n_linecnt, "volatile");  }
+	| INTERRUPT                                                                    { $$ = new TypeQualifierSTN(3, n_linecnt, "interrupt"); }
 	;
 
 init_declarator
 	: direct_declarator                                                            { $$ = new InitDeclaratorSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| direct_declarator C_ES initializer                                           { $$ = new InitDeclaratorSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| direct_declarator '=' initializer                                            { $$ = new InitDeclaratorSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
 
 parameter_list
 	: parameter_declaration                                                        { $$ = new ParameterListSTN(1, n_linecnt, new SyntaxTreeNode[] { $1 }); }
-	| parameter_list C_CM parameter_declaration                                    { $1.addChildren(new SyntaxTreeNode[] { $3 }); $$ = $1;                 }
+	| parameter_list ',' parameter_declaration                                     { $1.addChildren(new SyntaxTreeNode[] { $3 }); $$ = $1;                 }
 	;
 
 identifier_list
 	: IDENTIFIER                                                                   { $$ = new IdentifierListSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt) }); }
-	| identifier_list C_CM IDENTIFIER                                              { $1.addChildren(new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt) }); $$ = $1;                  }
+	| identifier_list ',' IDENTIFIER                                               { $1.addChildren(new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt) }); $$ = $1;                  }
 	;
 
 constant_expression
@@ -170,7 +165,7 @@ parameter_declaration
 
 conditional_expression
 	: logical_or_expression                                                        { $$ = new ConditionalExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1         }); }
-	| logical_or_expression C_QM expression C_DP conditional_expression            { $$ = new ConditionalExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3, $5 }); }
+	| logical_or_expression '?' expression ':' conditional_expression              { $$ = new ConditionalExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3, $5 }); }
 	;
 
 statement
@@ -195,39 +190,39 @@ logical_or_expression
 
 expression
 	: assignment_expression                                                        { $$ = new ExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| expression C_CM assignment_expression                                        { $$ = new ExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| expression ',' assignment_expression                                         { $$ = new ExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
 
 labeled_statement
-	: IDENTIFIER C_DP statement                                                    { $$ = new LabeledStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt), $3 }); }
-	| CASE constant_expression C_DP statement                                      { $$ = new LabeledStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $2, $4                              }); }
-	| DEFAULT C_DP statement                                                       { $$ = new LabeledStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $3                                  }); }
+	: IDENTIFIER ':' statement                                                     { $$ = new LabeledStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt), $3 }); }
+	| CASE constant_expression ':' statement                                       { $$ = new LabeledStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $2, $4                              }); }
+	| DEFAULT ':' statement                                                        { $$ = new LabeledStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $3                                  }); }
 	;
 
 expression_statement
-	: C_SC                                                                         { $$ = new ExpressionStatementSTN(1, n_linecnt);                              }
-	| expression C_SC                                                              { $$ = new ExpressionStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $1 }); }
+	: ';'                                                                         { $$ = new ExpressionStatementSTN(1, n_linecnt);                              }
+	| expression ';'                                                              { $$ = new ExpressionStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $1 }); }
 	;
 
 selection_statement
-	: IF C_OP expression C_CP compound_statement                                   { $$ = new SelectionStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { $3, $5     }); }
-	| IF C_OP expression C_CP compound_statement ELSE compound_statement           { $$ = new SelectionStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $5, $7 }); }
-	| SWITCH C_OP expression C_CP compound_statement                               { $$ = new SelectionStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $2, $5     }); }
+	: IF '(' expression ')' compound_statement                                     { $$ = new SelectionStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { $3, $5     }); }
+	| IF '(' expression ')' compound_statement ELSE compound_statement             { $$ = new SelectionStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $5, $7 }); }
+	| SWITCH '(' expression ')' compound_statement                                 { $$ = new SelectionStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $2, $5     }); }
 	;
 
 iteration_statement
-	: WHILE C_OP expression C_CP statement                                         { $$ = new IterationStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { $3, $5         }); }
-	| DO statement WHILE C_OP expression C_CP C_SC                                 { $$ = new IterationStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $2, $5         }); }
-	| FOR C_OP expression_statement expression_statement C_CP statement            { $$ = new IterationStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $3, $4, $6     }); }
-	| FOR C_OP expression_statement expression_statement expression C_CP statement { $$ = new IterationStatementSTN(4, n_linecnt, new SyntaxTreeNode[] { $3, $4, $5, $7 }); }
+	: WHILE '(' expression ')' statement                                           { $$ = new IterationStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { $3, $5         }); }
+	| DO statement WHILE '(' expression ')' ';'                                    { $$ = new IterationStatementSTN(2, n_linecnt, new SyntaxTreeNode[] { $2, $5         }); }
+	| FOR '(' expression_statement expression_statement ')' statement              { $$ = new IterationStatementSTN(3, n_linecnt, new SyntaxTreeNode[] { $3, $4, $6     }); }
+	| FOR '(' expression_statement expression_statement expression ')' statement   { $$ = new IterationStatementSTN(4, n_linecnt, new SyntaxTreeNode[] { $3, $4, $5, $7 }); }
 	;
 
 jump_statement
-	: GOTO IDENTIFIER C_SC                                                         { $$ = new JumpStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt) }); }
-	| CONTINUE C_SC                                                                { $$ = new JumpStatementSTN(3, n_linecnt);                                                           }
-	| BREAK C_SC                                                                   { $$ = new JumpStatementSTN(4, n_linecnt);                                                           }
-	| RETURN C_SC                                                                  { $$ = new JumpStatementSTN(5, n_linecnt);                                                           }
-	| RETURN expression C_SC                                                       { $$ = new JumpStatementSTN(6, n_linecnt, new SyntaxTreeNode[] { $2                              }); }
+	: GOTO IDENTIFIER ';'                                                          { $$ = new JumpStatementSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt) }); }
+	| CONTINUE ';'                                                                 { $$ = new JumpStatementSTN(3, n_linecnt);                                                           }
+	| BREAK ';'                                                                    { $$ = new JumpStatementSTN(4, n_linecnt);                                                           }
+	| RETURN ';'                                                                   { $$ = new JumpStatementSTN(5, n_linecnt);                                                           }
+	| RETURN expression ';'                                                        { $$ = new JumpStatementSTN(6, n_linecnt, new SyntaxTreeNode[] { $2                              }); }
 	;
 
 unary_expression
@@ -236,13 +231,13 @@ unary_expression
 	| DEC_OP unary_expression                                                      { $$ = new UnaryExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $2     }); }
 	| unary_operator cast_expression                                               { $$ = new UnaryExpressionSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $2 }); }
 	| SIZEOF unary_expression                                                      { $$ = new UnaryExpressionSTN(5, n_linecnt, new SyntaxTreeNode[] { $2     }); }
-	| SIZEOF C_OP type_specifier C_CP                                              { $$ = new UnaryExpressionSTN(6, n_linecnt, new SyntaxTreeNode[] { $3     }); }
+	| SIZEOF '(' type_specifier ')'                                                { $$ = new UnaryExpressionSTN(6, n_linecnt, new SyntaxTreeNode[] { $3     }); }
 	| LOBYTE unary_expression                                                      { $$ = new UnaryExpressionSTN(7, n_linecnt, new SyntaxTreeNode[] { $2     }); }
 	| HIBYTE unary_expression                                                      { $$ = new UnaryExpressionSTN(8, n_linecnt, new SyntaxTreeNode[] { $2     }); }
 	;
 
 assignment_operator
-	: C_ES                                                                         { $$ = new AssignmentOperatorSTN( 1, n_linecnt); }
+	: '='                                                                         { $$ = new AssignmentOperatorSTN( 1, n_linecnt); }
 	| MUL_ASSIGN                                                                   { $$ = new AssignmentOperatorSTN( 2, n_linecnt); /* Not supported by 6502 */ }
 	| DIV_ASSIGN                                                                   { $$ = new AssignmentOperatorSTN( 3, n_linecnt); /* Not supported by 6502 */ }
 	| MOD_ASSIGN                                                                   { $$ = new AssignmentOperatorSTN( 4, n_linecnt); /* Not supported by 6502 */ }
@@ -262,52 +257,52 @@ logical_and_expression
 
 postfix_expression
 	: primary_expression                                                           { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| postfix_expression C_OB expression C_CB                                      { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
-	| postfix_expression C_OP C_CP                                                 { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| postfix_expression C_OP argument_expression_list C_CP                        { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| postfix_expression '[' expression ']'                                        { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| postfix_expression '(' ')'                                                   { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
+	| postfix_expression '(' argument_expression_list ')'                          { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	| postfix_expression INC_OP                                                    { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
 	| postfix_expression DEC_OP                                                    { $$ = new PostfixExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
 	;
 
 unary_operator
-	: C_A                                                                          { $$ = new UnaryOperatorSTN(1, n_linecnt); }
-	| C_AK                                                                         { $$ = new UnaryOperatorSTN(2, n_linecnt); }
-	| C_PS                                                                         { $$ = new UnaryOperatorSTN(3, n_linecnt); }
-	| C_MS                                                                         { $$ = new UnaryOperatorSTN(4, n_linecnt); }
-	| C_NS                                                                         { $$ = new UnaryOperatorSTN(5, n_linecnt); }
-	| C_EM                                                                         { $$ = new UnaryOperatorSTN(6, n_linecnt); }
+	: '&'                                                                          { $$ = new UnaryOperatorSTN(1, n_linecnt); }
+	| '*'                                                                          { $$ = new UnaryOperatorSTN(2, n_linecnt); }
+	| '+'                                                                          { $$ = new UnaryOperatorSTN(3, n_linecnt); }
+	| '-'                                                                          { $$ = new UnaryOperatorSTN(4, n_linecnt); }
+	| '~'                                                                          { $$ = new UnaryOperatorSTN(5, n_linecnt); }
+	| '!'                                                                          { $$ = new UnaryOperatorSTN(6, n_linecnt); }
 	;
 
 cast_expression
 	: unary_expression                                                             { $$ = new CastExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| C_OP type_specifier C_CP cast_expression                                     { $$ = new CastExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $2, $4 }); }
+	| '(' type_specifier ')' cast_expression                                       { $$ = new CastExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $2, $4 }); }
 	;
 
 primary_expression
 	: IDENTIFIER                                                                   { $$ = new PrimaryExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { new IdentifierSTL(1, n_linecnt)    }); }
 	| NUMBER_LITERAL                                                               { $$ = new PrimaryExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { new NumberLiteralSTL(1, n_linecnt) }); }
 	| STRING_LITERAL                                                               { $$ = new PrimaryExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { new StringLiteralSTL(1, n_linecnt) }); }
-	| C_OP expression C_CP                                                         { $$ = new PrimaryExpressionSTN(4, n_linecnt, new SyntaxTreeNode[] { $2                                 }); }
+	| '(' expression ')'                                                           { $$ = new PrimaryExpressionSTN(4, n_linecnt, new SyntaxTreeNode[] { $2                                 }); }
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression                                                      { $$ = new InclusiveOrExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| inclusive_or_expression C_PP exclusive_or_expression                         { $$ = new InclusiveOrExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| inclusive_or_expression '|' exclusive_or_expression                          { $$ = new InclusiveOrExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
 
 argument_expression_list
 	: assignment_expression                                                        { $$ = new ArgumentExpressionListSTN(1, n_linecnt, new SyntaxTreeNode[] { $1 }); }
-	| argument_expression_list C_CM assignment_expression                          { $1.addChildren(new SyntaxTreeNode[] { $3 }); $$ = $1;                          }
+	| argument_expression_list ',' assignment_expression                           { $1.addChildren(new SyntaxTreeNode[] { $3 }); $$ = $1;                          }
 	;
 
 exclusive_or_expression
 	: and_expression                                                               { $$ = new ExclusiveOrExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| exclusive_or_expression C_UA and_expression                                  { $$ = new ExclusiveOrExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| exclusive_or_expression '^' and_expression                                   { $$ = new ExclusiveOrExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
 
 and_expression
 	: equality_expression                                                          { $$ = new AndExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| and_expression C_A equality_expression                                       { $$ = new AndExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| and_expression '&' equality_expression                                       { $$ = new AndExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
 
 equality_expression
@@ -318,8 +313,8 @@ equality_expression
 
 relational_expression
 	: shift_expression                                                             { $$ = new RelationalExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| relational_expression C_GT shift_expression                                  { $$ = new RelationalExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
-	| relational_expression C_LT shift_expression                                  { $$ = new RelationalExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| relational_expression '>' shift_expression                                   { $$ = new RelationalExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| relational_expression '<' shift_expression                                   { $$ = new RelationalExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	| relational_expression LE_OP shift_expression                                 { $$ = new RelationalExpressionSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	| relational_expression GE_OP shift_expression                                 { $$ = new RelationalExpressionSTN(5, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
@@ -332,15 +327,15 @@ shift_expression
 
 additive_expression
 	: multiplicative_expression                                                    { $$ = new AdditiveExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     }); }
-	| additive_expression C_PS multiplicative_expression                           { $$ = new AdditiveExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
-	| additive_expression C_MS multiplicative_expression                           { $$ = new AdditiveExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| additive_expression '+' multiplicative_expression                            { $$ = new AdditiveExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
+	| additive_expression '-' multiplicative_expression                            { $$ = new AdditiveExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); }
 	;
 
 multiplicative_expression
 	: cast_expression                                                              { $$ = new MultiplicativeExpressionSTN(1, n_linecnt, new SyntaxTreeNode[] { $1     });                             }
-	| multiplicative_expression C_AK cast_expression                               { $$ = new MultiplicativeExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); /* Not supported by 6502 */ }
-	| multiplicative_expression C_SS cast_expression                               { $$ = new MultiplicativeExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); /* Not supported by 6502 */ }
-	| multiplicative_expression C_PC cast_expression                               { $$ = new MultiplicativeExpressionSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); /* Not supported by 6502 */ }
+	| multiplicative_expression '*' cast_expression                                { $$ = new MultiplicativeExpressionSTN(2, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); /* Not supported by 6502 */ }
+	| multiplicative_expression '/' cast_expression                                { $$ = new MultiplicativeExpressionSTN(3, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); /* Not supported by 6502 */ }
+	| multiplicative_expression '%' cast_expression                                { $$ = new MultiplicativeExpressionSTN(4, n_linecnt, new SyntaxTreeNode[] { $1, $3 }); /* Not supported by 6502 */ }
 	;
 %%
 
