@@ -40,9 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ErrManager.cs" />
+    <Compile Include="Quad.cs" />
     <Compile Include="STEntry.cs" />
     <Compile Include="STFramework.cs" />
     <Compile Include="SymbolsTable.cs" />

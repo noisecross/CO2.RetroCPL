@@ -1,0 +1,48 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test11.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Pointer operations
+ *
+ * ------------------------------------------
+ */
+
+void main() {
+	volatile byte   i, j;
+	volatile byte*  pbyte  = &i;
+	volatile byte*  pmbyte = (byte*)0x0200;
+	volatile byte** dpbyte = &pbyte;
+
+	i = 40;
+	*pbyte    = *pbyte += 3;   /* i = 43 */
+	**dpbyte  = **dpbyte -= 1; /* i = 42 */
+
+	j = -128;
+	while(pmbyte != (byte*)0x0300)
+	{
+		*pmbyte = j++;
+		pmbyte++;
+	}
+	
+	/*
+	********************
+	* EXPECTED RESULTS *
+	********************
+	
+	0x0200 to 0x0300 consecutive values starting at 0x80
+	
+	i      = 42,  0x2A;
+	j      = 128, 0x80;
+	pbyte  = &i;
+	dpbyte = &pbyte;
+	
+	*/	
+}

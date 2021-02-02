@@ -75,9 +75,9 @@ Eol            (\r\n?|\n)
 {StartComment}     { yy_push_state (CMMT);                                                      }
 <CMMT>{
     {Eol}          { helper.incrementLine(yytext);                                              }
-    [^*\n]+        { helper.count(yytext);                                                      }
-    "*"            { helper.count(yytext);                                                      }
-    {EndComment}   { helper.count(yytext); yy_pop_state();                                      }
+    [^*\n]+        { helper.count(yytext, false);                                               }
+    "*"            { helper.count(yytext, false);                                               }
+    {EndComment}   { helper.count(yytext, false); yy_pop_state();                               }
     <<EOF>>        { helper.count(yytext); helper.lexErr(ErrorMessages.ERR_LEX_MSG_02, yytext); }
 }
 
@@ -95,7 +95,9 @@ Eol            (\r\n?|\n)
 "for"            { helper.count(yytext); return(int) Tokens.FOR;       }
 "goto"           { helper.count(yytext); return(int) Tokens.GOTO;      }
 "if"             { helper.count(yytext); return(int) Tokens.IF;        }
+"hibyte"         { helper.count(yytext); return(int) Tokens.HIBYTE;    }
 "interrupt"      { helper.count(yytext); return(int) Tokens.INTERRUPT; }
+"lobyte"         { helper.count(yytext); return(int) Tokens.LOBYTE;    }
 "longword"       { helper.count(yytext); return(int) Tokens.LONGWORD;  }
 "register"       { helper.count(yytext); return(int) Tokens.REGISTER;  }
 "return"         { helper.count(yytext); return(int) Tokens.RETURN;    }
@@ -167,6 +169,6 @@ Eol            (\r\n?|\n)
 "|"              { helper.count(yytext); return(int) '|'; }
 "?"              { helper.count(yytext); return(int) '?'; }
 
-[ \t\v\n\f\r]    { helper.count(yytext); /* Ignore */   }
-.                { helper.count(yytext); helper.lexErr(ErrorMessages.ERR_LEX_MSG_00, yytext); }
+[ \t\v\n\f\r]    { helper.count(yytext, false); /* Ignore */   }
+.                { helper.count(yytext, false); helper.lexErr(ErrorMessages.ERR_LEX_MSG_00, yytext); }
 %%

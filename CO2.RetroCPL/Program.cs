@@ -12,16 +12,16 @@ namespace CO2.RetroCPL
     {
         static string programName;
 
-        static int showSyntaxTree;
-        static int showSymbolsTable;
-        static int showObjectCode;
+        static int displaySyntaxTree;
+        static int displaySymbolsTable;
+        static int displayObjectCode;
         static int performCodeTranslation;
 
-        static int  optimizationGrade;
+        static int  optimizationDegree;
         static bool constShortcut;
-        static bool showVersionFlag = false;
+        static bool displayVersionFlag = false;
         //static bool allowRecursion;
-        static int  errorShownGrade;
+        static int  errorDisplayDegree = 2;
 
 
 
@@ -32,59 +32,33 @@ namespace CO2.RetroCPL
         /// out all the marrow of Retro Consoles!
         /// </summary>
         /// <param name="args"></param>
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            int output = 0;
+            Constants.MainReturn output = checkInputArgs(args);
 
-            switch (parseargs(args))
-            {
-                case Constants.MAIN_RET_HELP:     // Help : Show usage
-                    usage();
-                    output = Constants.MAIN_RET_HELP;
-                    break;
-                case Constants.MAIN_RET_VER:      // Just asked to show the version
-                    output = Constants.MAIN_RET_VER;
-                    break;
-                case Constants.MAIN_RET_BAD_ARGS: // Input error: Show usage
-                    usage();
-                    output = Constants.MAIN_RET_BAD_ARGS;
-                    break;
-                case Constants.MAIN_RET_FILE_ERR:	// Input file not found. Exit
-                    output = Constants.MAIN_RET_FILE_ERR;
-                    break;
-                default:
-                    break;
-            }
-
-            if (output == Constants.MAIN_RET_OK)
+            if (output == Constants.MainReturn.OK)
                 process();
 
             Console.ReadKey();
+            return (int)output;
         }
 
         private static void process()
         {
-            FileStream file = null;
-            Scanner scn = null;
-            Parser parser = null;
-
             try
             {
                 initialize();
 
                 Console.WriteLine("Loading file {0}...", programName);
-                file = new FileStream(programName, FileMode.Open);
-                scn = new FrontEnd.Scanner(file);
-                parser = new FrontEnd.Parser(scn);
-                parser.Parse();
+                Helper.ParseFile(programName);
 
-                if (ErrManager.Instance.existsError())
-                    Console.WriteLine(ErrManager.Instance.toString());
-                else
-                {
-                    Console.WriteLine(SyntaxTree.toString());
-                    Console.WriteLine(SymbolsTable.Instance.toString());
-                }
+                Console.WriteLine(SymbolsTable.Instance.toString());
+                //Console.WriteLine(SyntaxTree.toString());
+
+                ErrManager.Instance.printStatus();
+
+                if (!ErrManager.Instance.existsError())
+                    Common.WriteLineConsoleColoured("Operation performed succesfully!", ConsoleColor.Green);
 
                 //program = parser.program;
 
@@ -102,10 +76,46 @@ namespace CO2.RetroCPL
                 //    return Constants.MAIN_RET_FILE_ERR;
                 //}
             }
-            finally
+            catch (Exception e)
             {
-                file.Close();
+                Console.WriteLine("Error running CO2.RetroCPL:");
+                Common.WriteConsoleException(e, true);
             }
+        }
+
+        private static Constants.MainReturn checkInputArgs(string[] args)
+        {
+            Constants.MainReturn output = 0;
+
+            switch (parseargs(args))
+            {
+                // Help : Display usage
+                case Constants.MainReturn.HELP:
+                    usage();
+                    output = Constants.MainReturn.HELP;
+                    break;
+
+                // Just asked to display the version
+                case Constants.MainReturn.VER:
+                    output = Constants.MainReturn.VER;
+                    break;
+
+                // Input error: Display usage
+                case Constants.MainReturn.BAD_ARGS:
+                    usage();
+                    output = Constants.MainReturn.BAD_ARGS;
+                    break;
+
+                // Input file not found. Exit
+                case Constants.MainReturn.FILE_ERR:
+                    output = Constants.MainReturn.FILE_ERR;
+                    break;
+
+                default:
+                    break;
+            }
+
+            return output;
         }
 
         private static void usage()
@@ -131,31 +141,31 @@ namespace CO2.RetroCPL
             Console.WriteLine("\t\t 0\tNo visibility");
             Console.WriteLine("\t\t 1\tDisplayed on console");
             Console.WriteLine("\t\t 2\tStored in a file");
-            Console.WriteLine("\t-v Show the compiler version");
+            Console.WriteLine("\t-v Display the compiler version");
         }
 
-        private static int parseargs(string[] argv)
+        private static Constants.MainReturn parseargs(string[] argv)
         {
             // Usage: CO2.RetroCPL [options] <input_file>
             int    argc = argv.Count();
 
 	        if (argc < 1)
-		        return Constants.MAIN_RET_BAD_ARGS;
+		        return Constants.MainReturn.BAD_ARGS;
 
 	        if (argc == 1 && argv[0][0]== '-'){
 		        switch(argv[0][1]){
 		
-		        case 'h':	// Show help
+		        case 'h':	// Display help
 			        if (argv[0][2] != '\0')
-				        return Constants.MAIN_RET_BAD_ARGS;
-			        return Constants.MAIN_RET_HELP;
-		        case 'v':  // Show version
+				        return Constants.MainReturn.BAD_ARGS;
+			        return Constants.MainReturn.HELP;
+		        case 'v':  // Display version
 			        if (argv[0][2] != '\0')
-				        return Constants.MAIN_RET_BAD_ARGS;
-			        showVersionFlag = true;
+				        return Constants.MainReturn.BAD_ARGS;
+			        displayVersionFlag = true;
 			        break;
 		        default:
-			        return Constants.MAIN_RET_BAD_ARGS;
+			        return Constants.MainReturn.BAD_ARGS;
 		        }
 	        }
 
@@ -163,21 +173,21 @@ namespace CO2.RetroCPL
             {
                 try
                 {
-                    int result = parseOneArg(argv[i]);
-                    if (result != Constants.MAIN_RET_OK)
+                    Constants.MainReturn result = parseOneArg(argv[i]);
+                    if (result != Constants.MainReturn.OK)
                         return result;
                 }
                 catch
                 {
-                    return Constants.MAIN_RET_BAD_ARGS;
+                    return Constants.MainReturn.BAD_ARGS;
                 }
             }
 
-            if (showVersionFlag)
+            if (displayVersionFlag)
             {
                 Console.WriteLine("{0}{1}{0}", Environment.NewLine, Constants.VERSION);
                 if (argc == 2)
-                    return Constants.MAIN_RET_VER;
+                    return Constants.MainReturn.VER;
             }
 	
             //if(allowRecursion){
@@ -187,37 +197,38 @@ namespace CO2.RetroCPL
             programName = argv[argc - 1];
             if (!File.Exists(programName))
             {
-                Console.WriteLine("Input Error: File {0} was not found", programName);
-                return Constants.MAIN_RET_FILE_ERR;
+                Console.Write("Input Error: ");
+                Common.WriteLineConsoleColoured("File " + programName + " was not found", ConsoleColor.Red);
+                return Constants.MainReturn.FILE_ERR;
             }
 
 	        // OK
-	        return Constants.MAIN_RET_OK;
+	        return Constants.MainReturn.OK;
         }
 
-        private static int parseOneArg(string argv)
+        private static Constants.MainReturn parseOneArg(string argv)
         {
             int auxInt;
 
             if (argv[0] != '-')
-                return Constants.MAIN_RET_BAD_ARGS;
+                return Constants.MainReturn.BAD_ARGS;
 
             switch (argv[1])
             {
                 case 'O':	// Set the optimization grade
                     auxInt = int.Parse(argv[2].ToString());
                     if (auxInt < 0 || auxInt > 3)
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     if (argv[3] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    optimizationGrade = auxInt;
-                    constShortcut = (optimizationGrade > 0);
+                        return Constants.MainReturn.BAD_ARGS;
+                    optimizationDegree = auxInt;
+                    constShortcut = (optimizationDegree > 0);
                     break;
 
-                case 'h':	// Show help
+                case 'h':	// Display help
                     if (argv[2] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    return Constants.MAIN_RET_HELP;
+                        return Constants.MainReturn.BAD_ARGS;
+                    return Constants.MainReturn.HELP;
 
                 //case 'r':  // Allow recursion
                 //    if (argv[2] != '\0')
@@ -225,69 +236,69 @@ namespace CO2.RetroCPL
                 //    allowRecursion = true;
                 //    break;
 
-                case 'e':	// Set the error messages shown
+                case 'e':	// Set the error messages displayed
                     auxInt = int.Parse(argv[2].ToString());
                     if (auxInt < 0 || auxInt > 3)
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     if (argv[3] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    errorShownGrade = auxInt;
+                        return Constants.MainReturn.BAD_ARGS;
+                    errorDisplayDegree = auxInt;
                     break;
 
                 case 'T':	// Set the syntax tree visibility
                     auxInt = int.Parse(argv[2].ToString());
                     if (auxInt < 0 || auxInt > 2)
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     if (argv[3] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    showSyntaxTree = auxInt;
+                        return Constants.MainReturn.BAD_ARGS;
+                    displaySyntaxTree = auxInt;
                     break;
 
                 case 'S':	// Set the symbols table visibility
                     auxInt = int.Parse(argv[2].ToString());
                     if (auxInt < 0 || auxInt > 2)
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     if (argv[3] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    showSymbolsTable = auxInt;
+                        return Constants.MainReturn.BAD_ARGS;
+                    displaySymbolsTable = auxInt;
                     break;
 
                 case 'C':	// Set the intermediate code visibility
                     auxInt = int.Parse(argv[2].ToString());
                     if (auxInt < 0 || auxInt > 2)
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     if (argv[3] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    showObjectCode = auxInt;
+                        return Constants.MainReturn.BAD_ARGS;
+                    displayObjectCode = auxInt;
                     break;
 
                 case 'F':	// Set the final code visibility
                     auxInt = int.Parse(argv[2].ToString());
                     if (auxInt < 0 || auxInt > 2)
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     if (argv[3] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
+                        return Constants.MainReturn.BAD_ARGS;
                     performCodeTranslation = auxInt;
                     break;
 
-                case 'v':  // Show version
+                case 'v':  // Display version
                     if (argv[2] != '\0')
-                        return Constants.MAIN_RET_BAD_ARGS;
-                    showVersionFlag = true;
+                        return Constants.MainReturn.BAD_ARGS;
+                    displayVersionFlag = true;
                     break;
 
                 default:
-                    return Constants.MAIN_RET_BAD_ARGS;
+                    return Constants.MainReturn.BAD_ARGS;
             };
 
             /* OK */
-            return Constants.MAIN_RET_OK;
+            return Constants.MainReturn.OK;
         }
 
         private static void initialize()
         {
 	        SymbolsTable symbolsTable = new SymbolsTable();
-            ErrManager   errManager   = new ErrManager(errorShownGrade > 1, errorShownGrade > 2);
+            ErrManager   errManager   = new ErrManager(errorDisplayDegree > 1, errorDisplayDegree > 2);
             SyntaxTree   syntaxTree   = SyntaxTree.Instance;
 
 	        Helper.initLanguageRequirements();

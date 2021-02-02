@@ -1,0 +1,179 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test15.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Global checks
+ *
+ * ------------------------------------------
+ */
+ 
+byte testFunc(byte, unsigned word, const byte*, const byte**);
+void swap(byte*, byte*);
+
+void main() {
+	volatile byte i = 4, j, k, l = 0, m = 0, n;
+
+	const byte*  pbyte = &k;
+	byte**      dpbyte = &pbyte;
+	
+	const byte o = 15;
+	byte p;
+	
+	j = 8;
+	n = testFunc((byte)i, (unsigned word)j, pbyte, dpbyte);
+
+				/* n = 4 */
+	++j;        /* j = 9 */
+	--i;        /* i = 3 */
+
+	k = j++;    /* k = 9, j = 10 */
+	--i;        /* i = 2 */
+
+	/* k = 9 + 2 + 1 = 12 */
+	k = k + sizeof(dpbyte) + sizeof(byte);
+	
+	k = k + 2;
+	
+	checkpoint00: /* k = 14, dpbyte = &pbyte, pbyte = &k */
+	
+	i = (~k)^0x80; /* i = 15 */ /* i =      0x72 */
+	i = i << 2;  /* i = 60 */ /* i = 200, 0xC8 */
+	j = i >> 2;  /* j = 15 */ /* j = 50 , 0x32 */
+
+	checkpoint01:    /* j = 0xC8, i = 0x32, k = 0x0E */	
+	swap((byte*)&i, (byte*)&j);
+	
+	
+	j = j + (i - k); /* j = 200 + (50 - 14) = 236, 0xEC */
+	
+	l = l & 0xFF;    /* l = 0    */
+	m = m | 0xFF;    /* m = 0xFF */
+	l = l ^ 0xFF;    /* l = 0xFF */
+
+	checkpoint02:    /* i = 0x32, j = 0xEC, k = 0x0E, l = 0xFF, m = 0xFF */
+	label_01:
+
+	/* Switch-case */
+	switch (l){	
+	case 0:
+		l &= -128;	/* 0x80 */
+	case 1:
+		l ^= -128;	/* 0x80 */
+		m =  0;
+		;
+		m |= l;		
+		break;
+	case -1:		/* 0xFF */
+		l = 0;
+		goto label_01;
+	default:
+		break;
+	}; /* m = 0xFF, l = 0x80 */
+
+	/* Conditional */
+	i = (l == 0x80) ? (byte)42 : -42; /* i = 42 */
+
+	checkpoint03:    /* i = 0x2A, j = 0xEC, k = 0x0E, l = 0x80, m = 0x80 */
+	swap((byte*)&j, (byte*)&j);
+	
+	/* If */
+	if (i > 40){
+		j += 3;  /* j = 0xEF */
+	}
+	
+	/* If-else*/
+	if (j != 0xEF){
+		j = 255; /* Never here */
+	}else{
+		j >>= 1; /* j = 119, 0x77 */
+	}
+	
+	checkpoint04:    /* i = 0x2A, j = 0x77, k = 0x0E, l = 0x80, m = 0x80 */
+	
+	/* While */
+	while (i++ < 63){
+		j++;
+	} /* i = 64, 0x40 ; j = 140, 0x8C */
+
+	checkpoint05:    /* i = 0x40, j = 0x8C, k = 0x0E, l = 0x80, m = 0x80 */
+	/* Ok here */
+	
+	/* Do-while */
+	do{
+		*((volatile byte*)0x0500) += 1;
+	}while (j++ != 86);
+
+	checkpoint06:    /* 0x0500 = 0xCB, j = 87, 0x57 */
+	
+	/* For */
+	for (*((volatile byte*)0x0501) = m ; !(m <= 0) ; m <<= 1){
+	}
+	/* m = 0, 0x0501 = 0x80 */
+
+	/* For (2 arguments) */
+	for ( ; ; ){
+		if (++m <= 64) { continue; } 
+		/* 4 times, m = 65, 66, 67, 68 */ 
+		if (m == 65 || m == 67) { *((volatile byte*)0x0503) += 1; }
+		
+		if (j == 87 && m == 66) { *((volatile byte*)0x0502) = 7; }
+		if (m == 66 && j == 87) { *((volatile byte*)0x0502) <<= 2; }
+		
+		if (m >= 68) { break; }
+	}
+	checkpoint07:    /* 0x0502 = 0x1C ; 0x0503 = 2 ; m = 68, 0x44 */
+
+	/* Dead code*/
+	p = *((volatile byte*)0x0502);
+	p = 15;
+	
+	/*
+	********************
+	* EXPECTED RESULTS *
+	********************
+
+	0x0500 = 0xCB
+	0x0501 = 0x80 (-128)
+	0x0502 = 0x1C
+	0x0503 = 0x02
+	
+	i = 64		0x40
+	j = 87		0x57
+	k = 14		0x0E
+	l = -128	0x80
+	m = 68		0x44
+	n = 4		0x04
+	
+	*/
+	
+	return;
+}
+
+byte testFunc(byte inbyte, unsigned word inInt, const byte* inPbyte, const byte** inPpbyte){
+	word   vInt;
+	byte  vbyte;
+	word*  pint;
+	byte* pbyte;
+	
+	pint  = &vInt;
+	pbyte = &vbyte;
+
+	*pbyte = 'a';
+	*pint  = 128;
+	
+	return 4;
+}
+
+void swap(byte* x, byte* y){
+	byte aux = *x;
+	*x = *y;
+	*y = aux;
+}

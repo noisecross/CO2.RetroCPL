@@ -59,6 +59,24 @@
       <Name>CO2.RetroCPL.FrontEnd</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="TestFiles\test01.rcc" />
+    <None Include="TestFiles\test02.rcc" />
+    <None Include="TestFiles\test03.rcc" />
+    <None Include="TestFiles\test04.rcc" />
+    <None Include="TestFiles\test05.rcc" />
+    <None Include="TestFiles\test06.rcc" />
+    <None Include="TestFiles\test07.rcc" />
+    <None Include="TestFiles\test08.rcc" />
+    <None Include="TestFiles\test09.rcc" />
+    <None Include="TestFiles\test10.rcc" />
+    <None Include="TestFiles\test11.rcc" />
+    <None Include="TestFiles\test12.rcc" />
+    <None Include="TestFiles\test13.rcc" />
+    <None Include="TestFiles\test14.rcc" />
+    <None Include="TestFiles\test15.rcc" />
+    <None Include="TestFiles\test16.rcc" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

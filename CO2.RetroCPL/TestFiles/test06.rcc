@@ -1,0 +1,35 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test06.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Prueba de Errores Semánticos 03
+ *
+ * ------------------------------------------
+ */
+
+/* ERR_SEM_MSG_0E "La función \'main\' no admite argumentos de entrada" */
+void main(byte x){
+	/* ERR_SEM_MSG_0C "Redefinición de una etiqueta en el mismo espacio de nombres" */
+	label:
+	label:
+	
+	/* ERR_SEM_MSG_0D "La sentencia no puede utilizarse en ese punto del código" */
+	break;
+	
+	/* ERR_SEM_MSG_0F "El literal no puede ser convertido a dígito" */
+	/* Debug. No se usa en la versión v1.0 */
+	
+	/* #define ERR_SEM_MSG_10 "Fallo durante el análisis semántico. Error en el compilador" */
+	/* Debug. Presumiblemente inalcanzable */
+	
+	/* ERR_SEM_MSG_11 "Operación no válida para tipos sin signo" */
+	/* Debug. No se usa en la versión v1.0 */
+}

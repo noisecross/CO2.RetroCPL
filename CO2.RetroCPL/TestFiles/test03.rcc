@@ -1,0 +1,29 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test03.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Prueba de Errores Sintácticos
+ *
+ * ------------------------------------------
+ */
+
+void main(){
+	/* ERR_SIN_MSG_01 "Operacion no soportada por la arquitectura 6502" */
+	byte a = 1;
+	byte b = 2;
+	byte c;
+	c = a * b;
+	c = a / b;
+	c = a % b;
+	
+	/* ERR_SIN_MSG_02 "Se esperaba especificador de tipo" */
+	unsigned volatile d;
+}

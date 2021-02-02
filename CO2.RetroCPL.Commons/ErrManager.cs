@@ -21,14 +21,14 @@ namespace CO2.RetroCPL.Commons
         private List<string> warList = new List<string>();
         private List<string> infList = new List<string>();
 
-        private static ErrManager _uniqueErrManager = null;
+        private static ErrManager _ErrManagerSingleton = null;
         public  static ErrManager Instance
         {
             get
             {
-                if (_uniqueErrManager == null)
-                    _uniqueErrManager = new ErrManager();
-                return _uniqueErrManager;
+                if (_ErrManagerSingleton == null)
+                    _ErrManagerSingleton = new ErrManager();
+                return _ErrManagerSingleton;
             }
         }
 
@@ -40,8 +40,8 @@ namespace CO2.RetroCPL.Commons
 	        bWarnings = true;
 	        bInfos = true;
 
-            if (_uniqueErrManager == null)
-                _uniqueErrManager = this;
+            if (_ErrManagerSingleton == null)
+                _ErrManagerSingleton = this;
         }
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace CO2.RetroCPL.Commons
 	        bWarnings = bW;
 	        bInfos = bI;
 
-            if (_uniqueErrManager == null)
-                _uniqueErrManager = this;
+            if (_ErrManagerSingleton == null)
+                _ErrManagerSingleton = this;
         }
 
         /// <summary>
@@ -95,23 +95,55 @@ namespace CO2.RetroCPL.Commons
         }
 
         /// <summary>
-        /// Get all the erroneous info founded and stored into the manager.
+        /// Get all the erroneous info found and stored into the manager.
         /// </summary>
         /// <returns>A formatted string containing all the relevant stored messages.</returns>
-        public string toString()
+        public string errorsToString()
         {
 	        string output = string.Empty;
 
             foreach (string item in errList)
                 output += item + Environment.NewLine;
 
+	        return output;
+        }
+        public string warningsToString()
+        {
+            string output = string.Empty;
+
             foreach (string item in warList)
                 output += item + Environment.NewLine;
+
+            return output;
+        }
+        public string infosToString()
+        {
+            string output = string.Empty;
 
             foreach (string item in infList)
                 output += item + Environment.NewLine;
 
-	        return output;
+            return output;
+        }
+
+        /// <summary>
+        ///  Displays all the relevant messages found and stored into the manager.
+        /// </summary>
+        public void printStatus()
+        {
+            string output = string.Empty;
+
+            output = infosToString();
+            if(!string.IsNullOrEmpty(output))
+                Common.WriteLineConsoleColoured(output, ConsoleColor.Blue);
+
+            output = warningsToString();
+            if (!string.IsNullOrEmpty(output))
+                Common.WriteLineConsoleColoured(output, ConsoleColor.Yellow);
+
+            output = errorsToString();
+            if (!string.IsNullOrEmpty(output))
+                Common.WriteLineConsoleColoured(output, ConsoleColor.Red);
         }
     }
 }

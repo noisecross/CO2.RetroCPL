@@ -1,0 +1,27 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test02.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Prueba de Errores Léxicos
+ *
+ * ------------------------------------------
+ */
+
+void main(){
+	/* ERR_LEX_MSG_00 "Símbolo no reconocido en el lenguaje" */
+	byte a@;
+	
+	/* ERR_LEX_MSG_01 "Nombre de identificador demasiado largo" */
+	byte elNombreDeEsteIndicadorEsExcesivamenteLargo;
+	
+	/* ERR_LEX_MSG_02 "Fin de fichero encontrado dentro de un comentario */
+	/*
+}

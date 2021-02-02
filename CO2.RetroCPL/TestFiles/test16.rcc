@@ -1,0 +1,63 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test16.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Pointer checks
+ *
+ * ------------------------------------------
+ */
+ 
+byte testFunc(byte, unsigned word, const byte*, const byte**);
+
+void main() {
+	volatile byte i = 4, j, k, l = 0, m = 0, n;
+
+	const byte*  pbyte = &k;
+	byte**      dpbyte = &pbyte;
+	
+	const byte o = 15;
+	byte p;
+	
+	j = 8;
+	n = testFunc((byte)i, (unsigned word)j, pbyte, dpbyte);
+
+	do{
+		*((volatile byte*)0x0500) += 1;
+	}while (j++ != 0x88);
+
+	/*
+	********************
+	* EXPECTED RESULTS *
+	********************
+
+	n = 4		0x04
+	
+	*/
+	
+	return;
+}
+
+
+
+byte testFunc(byte inbyte, unsigned word inInt, const byte* inPbyte, const byte** inPpbyte){
+	word   vInt;
+	byte  vbyte;
+	word*  pint;
+	byte* pbyte;
+	
+	pint  = &vInt;
+	pbyte = &vbyte;
+
+	*pbyte = 'a';
+	*pint  = 128;
+	
+	return 4;
+}

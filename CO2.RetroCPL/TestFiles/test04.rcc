@@ -1,0 +1,46 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test04.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Prueba de Errores Semánticos 01
+ *
+ * ------------------------------------------
+ */
+
+byte foo(byte, byte);
+
+void main(){
+	byte  a, b;
+	word   c;
+	byte* d;
+	
+	/* ERR_SEM_MSG_00 "Identificador no declarado" */
+	e = a;
+	
+	/* ERR_SEM_MSG_01 "Parámetros de entrada incompatibles con la función" */
+	foo(a, c);
+	
+	/* ERR_SEM_MSG_02 "Función no declarada" */
+	goo(a,b);
+	
+	/* ERR_SEM_MSG_03 "Tipo no declarado" */
+	b = (const tipo)a;
+	
+	/* ERR_SEM_MSG_04 "El tipo no se puede promocionar" */
+	d = a;
+	
+	/* ERR_SEM_MSG_05 "La operación solamente es válida para tipos de 1 byte de tamaño" */
+	a = b << c;
+}
+
+byte foo(byte x, byte y){
+	return x + y;
+}

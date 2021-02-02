@@ -1,0 +1,43 @@
+ /**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test07.rc7                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Prueba de Errores Semánticos 04
+ *
+ * ------------------------------------------
+ */
+
+/* ERR_SEM_MSG_15 "Función declarada pero no definida" */
+void foo();
+
+void main(){
+	const byte a = 0;
+	
+	/* ERR_SEM_MSG_14 "Desbordamiento en la asignación" */
+	signed   word ia =  0x8000;
+	signed   word ib = -32769;
+	unsigned word ic =  65536;
+	/* WAR Operación entre tipos con y sin signo */
+	unsigned word id = -1;        
+	
+	/* WAR Pérdida de información al promocionar un tipo */
+	signed   byte b =  128;
+	signed   byte c = -129;
+	unsigned byte d =  256;
+	/* WAR Operación entre tipos con y sin signo */
+	unsigned byte e = -1;
+	
+	/* ERR_SEM_MSG_12 "Etiqueta no definida en esta función" */
+	goto label;
+	
+	/* ERR_SEM_MSG_13 "Asignación sobre una variable definida como \'const\'" */
+	a = 1;
+}

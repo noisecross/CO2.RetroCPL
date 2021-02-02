@@ -11,28 +11,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CO2.RetroCPL.Commons;
+using System.IO;
 
 namespace CO2.RetroCPL.FrontEnd
 {
     public class Helper
     {
-        /*enum {
-            NT_PRIMARY_EXPRESSION = 1, NT_POSTFIX_EXPRESSION, NT_ARGUMENT_EXPRESSION_LIST, NT_UNARY_EXPRESSION,
-            NT_UNARY_OPERATOR, NT_CAST_EXPRESSION, NT_MULTIPLICATIVE_EXPRESSION, NT_ADDITIVE_EXPRESSION,
-            NT_SHIFT_EXPRESSION, NT_RELATIONAL_EXPRESSION, NT_EQUALITY_EXPRESSION, NT_AND_EXPRESSION,
-            NT_EXCLUSIVE_OR_EXPRESSION, NT_INCLUSIVE_OR_EXPRESSION, NT_LOGICAL_AND_EXPRESSION,
-            NT_LOGICAL_OR_EXPRESSION, NT_CONDITIONAL_EXPRESSION, NT_ASSIGNMENT_EXPRESSION, NT_ASSIGNMENT_OPERATOR,
-            NT_EXPRESSION, NT_CONSTANT_EXPRESSION, NT_DECLARATION, NT_DECLARATION_SPECIFIERS, NT_INIT_DECLARATOR_LIST,
-            NT_INIT_DECLARATOR, NT_STORAGE_CLASS_SPECIFIER, NT_TYPE_SPECIFIER, NT_STRUCT_OR_UNION_SPECIFIER,
-            NT_STRUCT_OR_UNION, NT_STRUCT_DECLARATION_LIST, NT_STRUCT_DECLARATION, NT_SPECIFIER_QUALIFIER_LIST,
-            NT_STRUCT_DECLARATOR_LIST, NT_STRUCT_DECLARATOR, NT_ENUM_SPECIFIER, NT_ENUMERATOR_LIST, NT_ENUMERATOR,
-            NT_TYPE_QUALIFIER, NT_DECLARATOR, NT_DIRECT_DECLARATOR, NT_POINTER, NT_TYPE_QUALIFIER_LIST, NT_PARAMETER_TYPE_LIST,
-            NT_PARAMETER_LIST, NT_PARAMETER_DECLARATION, NT_IDENTIFIER_LIST, NT_TYPE_NAME, NT_ABSTRACT_DECLARATOR,
-            NT_DIRECT_ABSTRACT_DECLARATOR, NT_INITIALIZER, NT_INITIALIZER_LIST, NT_STATEMENT, NT_LABELED_STATEMENT,
-            NT_COMPOUND_STATEMENT, NT_DECLARATION_LIST, NT_STATEMENT_LIST, NT_EXPRESSION_STATEMENT, NT_SELECTION_STATEMENT,
-            NT_ITERATION_STATEMENT, NT_JUMP_STATEMENT, NT_TRANSLATION_UNIT, NT_EXTERNAL_DECLARATION,
-            NT_FUNCTION_DEFINITION
-        }; */
+        /// <summary>
+        /// Parse the file given as input param
+        /// </summary>
+        /// <param name="fileName"></param>
+        public static void ParseFile(string fileName)
+        {
+            try
+            {
+                if (!File.Exists(fileName))
+                {
+                    ErrManager.Instance.addError(string.Format("\t{0} ({1}){2}\t^{3}", fileName, 0, Environment.NewLine, ErrorMessages.ERR_SEM_MSG_1B));
+                    return;
+                }
+
+                using (FileStream file = new FileStream(fileName, FileMode.Open))
+                {
+                    Scanner scn = new Scanner(file);
+                    Parser parser = new Parser(scn);
+                    parser.Parse();
+                }
+
+                SyntaxTree.Instance.typeCheck();
+            }
+            catch
+            {
+                throw;
+            }
+        }
 
         /// <summary>
         /// Initialize the SymbolsTable with the initial language types and sizes.
@@ -43,7 +55,7 @@ namespace CO2.RetroCPL.FrontEnd
             SymbolsTable.Instance.addType(Constants.TYPE_OK, 0);
             SymbolsTable.Instance.addType(Constants.TYPE_LITERAL, 0);
             SymbolsTable.Instance.addType("void", 0);
-            SymbolsTable.Instance.addType("byte", 1);
+            SymbolsTable.Instance.addType(Constants.TYPE_BYTE, 1);
             SymbolsTable.Instance.addType("word", 2);
 
             SymbolsTable.Instance.addFramework(Constants.GLOBAL_FRAMEWORK);
@@ -95,11 +107,8 @@ namespace CO2.RetroCPL.FrontEnd
             }
 
             // Ensure there are no call cycles if recursion disabled or mark frameworks otherwise
-            if (!errManager.existsError())
-            {
-                List<STFramework> visitedFrameworks = new List<STFramework>();
-                checkRecursion(symbolsTable.getFramework("main"), recursionEnabled, visitedFrameworks, symbolsTable, errManager);
-            }
+            List<STFramework> visitedFrameworks = new List<STFramework>();
+            checkRecursion(symbolsTable.getFramework("main"), recursionEnabled, visitedFrameworks, symbolsTable, errManager);
 
             // Ensure that no error have been detected
             if (errManager.existsError())
@@ -119,31 +128,33 @@ namespace CO2.RetroCPL.FrontEnd
         private static void checkRecursion(STFramework x, bool recursionEnabled, List<STFramework> visitedFrameworks, SymbolsTable symbolsTable, ErrManager errManager)
         {
             // bool output = false;
-            if(errManager.existsError())
-                return;
+            //if(errManager.existsError())
+            //    return;
 
             if (visitedFrameworks.Contains(x))
             {
                 // If isRecursive, just return
-                if(x.recursive)
+                if (x.recursive)
                     return;
-                
+
                 // Else, a cycle has been found. Set recursive every framework in the cycle return true
                 // If recursion is not allowed, generate an error
                 x.recursive = true;
-                
+
                 string message = ErrorMessages.ERR_SEM_MSG_16;
-                if (!recursionEnabled) message += " " + x.name;
+                if (!recursionEnabled) message += Environment.NewLine + "\t" + x.name;
 
                 List<STFramework> visitedFrameworksCopy = visitedFrameworks.ToList();
                 visitedFrameworksCopy.Reverse();
+                string auxGraph = " -> " + x.name;
                 foreach (var item in visitedFrameworksCopy)
                 {
                     if (item == x) break;
-                    if (!recursionEnabled) message += " -> " + item.name;
+                    if (!recursionEnabled) auxGraph = " -> " + item.name + auxGraph;
                     item.recursive = true;
                 }
-                
+                message += auxGraph;
+
                 if (!recursionEnabled)
                 {
                     message += ErrorMessages.ERR_SEM_MSG_17;
@@ -169,7 +180,11 @@ namespace CO2.RetroCPL.FrontEnd
                     {
                         string message = string.Format("{0} \'{1}\' @ {2}", ErrorMessages.WAR_SEM_MSG_07, symbol.lex, symbol.framework);
                         ErrManager.Instance.addWarning(message);
-                        SymbolsTable.Instance.delSymbol(symbol.lex, symbol.framework);
+
+                        //TODO recover this
+                        //Don't delete input symbols
+                        //if (!framework.inputSymbols.Contains(symbol.lex))
+                        //    SymbolsTable.Instance.delSymbol(symbol.lex, symbol.framework);
                     }
         }
 
@@ -184,8 +199,26 @@ namespace CO2.RetroCPL.FrontEnd
 
     public class ScanerHelper
     {
-        public int n_chrcnt = 1;
-        public int n_linecnt = 1;
+        private int n_preprechrcnt, n_prechrcnt, n_chrcnt = 1;
+        private int n_linecnt = 1;
+
+        /// <summary>
+        /// n_preprechrcnt getter
+        /// </summary>
+        /// <returns></returns>
+        public int getPreviousCharacterCounter()
+        {
+            return n_preprechrcnt;
+        }
+
+        /// <summary>
+        /// n_linecnt getter
+        /// </summary>
+        /// <returns></returns>
+        public int getLineCounter()
+        {
+            return n_linecnt;
+        }
 
         /// <summary>
         /// Add a new error message to the main ErrManager instance.
@@ -217,7 +250,7 @@ namespace CO2.RetroCPL.FrontEnd
 
         public void incrementLine(string yytext)
         {
-            n_chrcnt = 1;
+            n_preprechrcnt = n_prechrcnt = n_chrcnt = 1;
             n_linecnt++;
         }
 
@@ -225,8 +258,14 @@ namespace CO2.RetroCPL.FrontEnd
         /// Keep a track of the position of the cursor in the input file.
         /// </summary>
         /// <param name="yytext">Text to advance.</param>
-        public void count(string yytext)
+        public void count(string yytext, bool overwritePreviousCounters=true)
         {
+            if (overwritePreviousCounters)
+            {
+                n_preprechrcnt = n_prechrcnt;
+                n_prechrcnt = n_chrcnt;
+            }
+
             foreach (char c in yytext)
                 count(c);
         }
@@ -240,6 +279,7 @@ namespace CO2.RetroCPL.FrontEnd
             if (c == '\n')
             {
                 n_chrcnt = 1;
+                n_prechrcnt = 1;
                 n_linecnt++;
             }
             else if (c == '\t')

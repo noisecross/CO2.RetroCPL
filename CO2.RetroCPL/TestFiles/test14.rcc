@@ -1,0 +1,191 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test14.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Logic operations
+ *
+ * ------------------------------------------
+ */
+ 
+void selIFELSE(byte);
+void itWHILE();
+void itDO_WHILE();
+void itFOR0();
+void itFOR2();
+void itFOR3();
+
+word globalVar;
+
+void main() {
+	byte i, j;
+	i = -1;
+	j =  5;
+
+	if (i < 6 && j > 4){
+		selIFELSE(i);
+	}else{
+		error:
+		goto error;
+	}
+	
+	itWHILE();
+
+	if ((i < 6 && j > 4)
+	    || (i < 4 && j > 6)
+		|| i){
+		itDO_WHILE();
+	}
+
+	if ((i < 6 || j > 4) + 3){
+		itFOR0();
+	}
+	if ((i + 3) || j < 4){
+		itFOR2();
+	}
+	itFOR3();
+	
+	/*
+	********************
+	* EXPECTED RESULTS *
+	********************
+	
+	0x0400 = 0x03
+	0x0401 = 0x05
+	0x0402 = 0x02
+	0x0403 = 0x03
+	0x0404 = 0x05
+	0x0405 = 0x02
+	0x0406 = 0x0B
+	0x0407 = 0x06
+	0x0408 = 0x05
+	0x0409 = 0x06
+	0x040A = 0x06
+	
+	*/	
+}
+
+void selIFELSE(byte i){
+	/* i = -1 */
+
+	byte k;
+	unsigned byte logic;
+	logic = i < 0;
+	
+	if (logic){
+		k = i;         /* k = -1 */
+		k = k + i + 5; /* k =  3 */
+		*((volatile byte*)0x0400) = k;
+	}
+	else
+	{
+		error:
+		goto error;
+		k = 4;
+		k = k + (i<<2);
+	}
+}
+
+void itWHILE(){
+    word i = 0;
+	byte j = 0;
+	unsigned byte k = 0;
+	unsigned byte logic = i < 3;
+	
+    while (logic){
+        i++;
+		logic = i < 3;
+        continue;
+        k = lobyte i;
+	}
+	/* i = 3, k = 0; */
+	logic = i > 5;
+	
+    while (i < 5){
+        i++;
+        k++;
+	}
+	/* i = 5, k = 2, logic = 0 */
+	*((volatile unsigned byte*)0x0401) = lobyte i;
+	*((volatile unsigned byte*)0x0402) = k;
+	*((volatile unsigned byte*)0x0403) = logic + 3;
+}
+
+void itDO_WHILE(){
+    byte i = 0;
+	byte j = 0;
+	word  k = 0;
+	unsigned byte logic;
+	
+    do{
+        i++;
+		logic = i < 3;
+        continue;
+        k = i;
+	} while (logic);
+	/* i = 3, k = 0 */
+
+    do{
+        i++;
+        k++;
+		logic = i < 5;
+	} while (logic);	 
+	/* i = 5, k = 2 */
+	*((volatile byte*)0x0404) = i;
+	*((volatile unsigned byte*)0x0405) = lobyte k;
+}
+
+void itFOR0(){
+	byte i;
+	unsigned byte logic;
+
+	for ( ; ; ){
+		i++;
+		logic = i > 10;
+		if (logic) { break; }
+	}
+	/* i = 11, 0x0B */
+	*((volatile byte*)0x0406) = i;
+}
+
+void itFOR2(){
+	word i;
+	byte j = 0;
+	unsigned byte logic;
+	
+	for (i = 0, logic = i < 10 ; logic ; ){
+		i++;
+		logic = i > 5;
+		if (logic) { break; }
+		logic = i < 10;
+		j++;
+	}
+	
+	/* i = 6, j = 5 */
+	*((volatile unsigned byte*)0x0407) = lobyte i;
+	*((volatile byte*)0x0408) = j;
+}
+
+void itFOR3(){
+	word i;
+	byte j = 0;	
+	unsigned byte logic;
+	
+	for (i = 0, logic = i < 10 ; logic ; i++){
+		logic = i > 5;
+		if (logic) { break; }
+		logic = i < 10;
+		j++;
+	}
+	
+	/* i = 6, j = 6 */
+	*((volatile unsigned byte*)0x0409) = lobyte i;
+	*((volatile byte*)0x040A) = j;
+}

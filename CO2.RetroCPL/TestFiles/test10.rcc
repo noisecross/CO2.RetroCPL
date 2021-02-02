@@ -1,0 +1,129 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test10.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Unary checks
+ *
+ * ------------------------------------------
+ */
+
+void testUnary(byte, word);
+
+void main() {
+	testUnary(1,1);
+}
+
+void testUnary(byte inbyteVar, word inwordVar){
+	volatile byte byteVar = inbyteVar;
+	volatile word  wordVar  = inwordVar;
+	
+	volatile byte checkbyte01, checkbyte02, checkbyte03;
+	volatile word  checkword01, checkword02, checkword03;
+	byte tbyte = 1;
+	word  tword  = 1;
+	
+	byteVar = ++tbyte; /* 2   */
+	byteVar = tbyte++; /* 2   */
+	byteVar = --tbyte; /* 2   */
+	byteVar = tbyte--; /* 2   */
+	byteVar = +3;      /* 3   */
+	byteVar = -(4);    /* -4  */
+	byteVar = ~5;      /* -6  */
+	byteVar = !6;      /* 0   */
+	byteVar = !0;      /* 1   */
+	
+	checkbyte01 = byteVar;
+	
+	wordVar = ++tword; /* 2  */
+	wordVar = tword++; /* 2  */
+	wordVar = --tword; /* 2  */
+	wordVar = tword--; /* 2  */
+	wordVar = +3;     /* 3  */
+	wordVar = -(4);   /* -4 */
+	wordVar = ~5;     /* -6 */
+	wordVar = !6;     /* 0  */
+	wordVar = !0;     /* 1  */
+	
+	checkword01 = wordVar;
+	
+	byteVar = ++inbyteVar; /* 2, 2 */
+	byteVar = inbyteVar++; /* 2, 3 */
+	byteVar = --inbyteVar; /* 2, 2 */
+	byteVar = inbyteVar--; /* 2, 1 */
+	
+	checkbyte02 = byteVar;
+	
+	/* byteVar = &inbyteVar; /* Incompatible types */
+	/* byteVar = *inbyteVar; /* Incompatible types */
+	byteVar = +inbyteVar;
+	byteVar = -inbyteVar;
+	byteVar = ~inbyteVar;
+	byteVar = !inbyteVar;         /* 0 */
+	byteVar = sizeof(inbyteVar);  /* 1 */
+	byteVar = sizeof(*inbyteVar); /* 2 */
+	byteVar = sizeof(inwordVar);  /* 2 */
+	byteVar = sizeof(word);       /* 2 */
+	byteVar = sizeof(word*);      /* 2 */
+
+	checkbyte03 = byteVar;
+	
+	wordVar = ++inwordVar; /* 2, 2 */
+	wordVar = inwordVar++; /* 2, 3 */
+	wordVar = --inwordVar; /* 2, 2 */
+	wordVar = inwordVar--; /* 2, 1 */
+	
+	checkword02 = wordVar; /* 2 */
+	
+	wordVar = (word)&inwordVar;
+	
+	checkword03 = wordVar;
+	
+	/* wordVar = *inwordVar; /* Incompatible types */
+	wordVar = +inwordVar;
+	wordVar = -inwordVar;
+	/* wordVar = ~inwordVar; /* Incompatible types */
+	/* wordVar = !inwordVar; /* Incompatible types */
+	wordVar = sizeof(inbyteVar);  /* 2 */
+	wordVar = sizeof(*inbyteVar); /* 2 */
+	wordVar = sizeof(inwordVar);  /* 2 */
+	wordVar = sizeof(word);       /* 2 */
+	wordVar = sizeof(word*);      /* 2 */
+
+	*((volatile byte*)0x0400) = inbyteVar;
+	*((volatile byte*)0x0401) = inwordVar;
+	*((volatile byte*)0x0402) = byteVar;
+	*((volatile byte*)0x0403) = wordVar;
+	*((volatile byte*)0x0404) = checkbyte01;
+	*((volatile byte*)0x0405) = checkbyte02;
+	*((volatile byte*)0x0406) = checkbyte03;
+	*((volatile byte*)0x0407) = checkword01;
+	*((volatile byte*)0x0408) = checkword02;
+	*((volatile word*)0x0409) = checkword03;
+	
+	/*
+	********************
+	* EXPECTED RESULTS *
+	********************
+	
+	0x0400 = 0x01
+	0x0401 = 0x01
+	0x0402 = 0x02
+	0x0403 = 0x02
+	0x0404 = 0x01
+	0x0405 = 0x02
+	0x0406 = 0x02
+	0x0407 = 0x01
+	0x0408 = 0x02
+	0x0409 = &inwordVar (LO)
+	0x040A = &inwordVar (HI)
+
+	*/
+}

@@ -17,24 +17,25 @@ namespace CO2.RetroCPL.Commons
     {
         Dictionary<string, STFramework>  frameworks      = new Dictionary<string, STFramework>();
         Dictionary<string, string>       constants       = new Dictionary<string, string>();
-        List<Type>                       types           = new List<Commons.Type>();
+        List<STType>                     types           = new List<STType>();
         List<string>                     tempIdentifiers = new List<string>();
-        List<QualifiedType>              tempSpecifiers  = new List<QualifiedType>();
+        List<QualifiedType>              tempQualifiers  = new List<QualifiedType>();
         List<string>                     tempTypes       = new List<string>();
         List<string>                     tempLiterals    = new List<string>();
         int                              idCounter       = 0;
+        int                              labelCounter    = 0;
         int                              memSize         = 0;
 
         public string currentFramework = string.Empty;
 
-        private static SymbolsTable _uniqueSymbolsTable = null;
+        private static SymbolsTable _SymbolsTableSingleton = null;
         public  static SymbolsTable Instance
         {
             get
             {
-                if (_uniqueSymbolsTable == null)
-                    _uniqueSymbolsTable = new SymbolsTable();
-                return _uniqueSymbolsTable;
+                if (_SymbolsTableSingleton == null)
+                    _SymbolsTableSingleton = new SymbolsTable();
+                return _SymbolsTableSingleton;
             }
         }
 
@@ -42,7 +43,7 @@ namespace CO2.RetroCPL.Commons
         /// Class constructor.
         /// </summary>
         public SymbolsTable() {
-            _uniqueSymbolsTable = this;
+            _SymbolsTableSingleton = this;
         }
 
         #region SymbolsTable methods
@@ -133,7 +134,7 @@ namespace CO2.RetroCPL.Commons
         /// <returns>True if the operation was performed successfully.</returns>
         public bool addType(string name, int size)
         {
-            types.Add(new Type(name, size));
+            types.Add(new STType(name, size));
             return true;
         }
 
@@ -204,19 +205,21 @@ namespace CO2.RetroCPL.Commons
         /// Store a specifier on the stack to be given later to the semantic analyzer.
         /// </summary>
         /// <param name="name">The name of the new identifier.</param>
-        public void pushTempSpecifier(QualifiedType type)
+        public void pushTempQualifier(QualifiedType type)
         {
-            tempSpecifiers.Add(type.Clone());
+            tempQualifiers.Add(type.Clone());
         }
 
         /// <summary>
         /// Get the last specifier object set on the temporal stack.
         /// </summary>
         /// <returns>The given specifier.</returns>
-        public QualifiedType popTempSpecifier()
+        public QualifiedType popTempQualifier()
         {
-            QualifiedType output = tempSpecifiers.Last().Clone();
-            tempSpecifiers.RemoveAt(tempIdentifiers.Count - 1);
+            if (tempQualifiers.Count < 1) return null;
+
+            QualifiedType output = tempQualifiers.Last().Clone();
+            tempQualifiers.RemoveAt(tempQualifiers.Count - 1);
             return output;
         }
 
@@ -224,9 +227,9 @@ namespace CO2.RetroCPL.Commons
         /// Let view the last specifier object set on the temporal stack.
         /// </summary>
         /// <returns>The given specifier.</returns>
-        public QualifiedType peekTempSpecifier()
+        public QualifiedType peekTempQualifier()
         {
-            QualifiedType output = tempSpecifiers.Last().Clone();
+            QualifiedType output = tempQualifiers.Last().Clone();
             return output;
         }
 
@@ -278,6 +281,58 @@ namespace CO2.RetroCPL.Commons
             foreach(var framework in frameworks)
                 foreach (var symbol in framework.Value.getSymbols())
                     symbol.n_uses = 0;
+        }
+
+        #endregion
+
+        #region SymbolsTable Type methods
+
+        /// <summary>
+        /// Returns the smallest possible language type able to store a given value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>A string containing the type</returns>
+        public string getTypeToFitValue(int value, bool? signed = null)
+        {
+            bool bSigned = (signed == null) ? value < 0 : signed.Value;
+            int nBytes = getSizeToFitValue(value, bSigned);
+
+            foreach (STType type in types)
+                if (type.size == nBytes) return type.type;
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Returns the smallest possible language type able to store the greater of both given values
+        /// </summary>
+        /// <param name="value1"></param>
+        /// <param name="value2"></param>
+        /// <param name="signed"></param>
+        /// <returns>A string containing the type</returns>
+        public string getTypeToFitValues(int value1, int value2, bool signed)
+        {
+            int value = (Math.Abs(value1) > Math.Abs(value2)) ? value1 : value2;
+            return getTypeToFitValue(value, signed || value < 0);
+        }
+
+        /// <summary>
+        /// Returns the smallest possible memory size able to store a given value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="signed"></param>
+        /// <returns>The size</returns>
+        public int getSizeToFitValue(int value, bool signed)
+        {
+            if (value == 0 || value == -1) return 1;
+            if (value < 0) value = Math.Abs(value) - 1;
+
+            double nBits = Math.Floor(Math.Log(value, 2)) + ((signed) ? 2 : 1);
+
+            int nBytes = Convert.ToInt32(Math.Ceiling(nBits / 8));
+            if (nBytes == 3) nBytes = 4;
+
+            return nBytes;
         }
 
         #endregion
@@ -553,10 +608,10 @@ namespace CO2.RetroCPL.Commons
         /// <param name="inType">The type of the symbol.</param>
         /// <param name="framework">The name of a framework.</param>
         /// <returns>True if the operation was performed successfully.</returns>
-        public bool addSymbol(string lex, QualifiedType inType, string framework)
+        public bool addSymbol(string lex, QualifiedType inType, string framework = null)
         {
-            if (!existsFramework(framework)) return false;
-            return getFramework(framework).addSymbol(lex, inType);
+            if (!existsFramework(framework ?? currentFramework)) return false;
+            return getFramework(framework ?? currentFramework).addSymbol(lex, inType);
         }
 
         /// <summary>
@@ -565,10 +620,10 @@ namespace CO2.RetroCPL.Commons
         /// <param name="lex">The name of the symbol.</param>
         /// <param name="framework">The name of a framework.</param>
         /// <returns>The symbol if the operation was performed successfully.</returns>
-        public STEntry getSymbol(string lex, string framework)
+        public STEntry getSymbol(string lex, string framework = null)
         {
-            if (!existsFramework(framework)) return null;
-            return getFramework(framework).getSymbol(lex);
+            if (!existsFramework(framework ?? currentFramework)) return null;
+            return getFramework(framework ?? currentFramework).getSymbol(lex);
         }
         
         /// <summary>
@@ -796,7 +851,7 @@ namespace CO2.RetroCPL.Commons
         /// <param name="framework">The name of a framework.</param>
         /// <param name="increment">The value of the increment.</param>
         /// <returns>True if the operation was performed successfully.</returns>
-        public bool incNUses(string lex, string framework, int increment)
+        public bool incNUses(string lex, string framework, int increment = 1)
         {
             if (!existsFramework(framework)) return false;
             int oldValue = getFramework(framework).getNUses(lex);
@@ -831,7 +886,20 @@ namespace CO2.RetroCPL.Commons
             if (!existsFramework(framework)) return false;
             return getFramework(framework).setAddress(lex, address);
         }
-        
+
+        #endregion
+
+        #region SymbolsTable, label generator methods
+
+        /// <summary>
+        /// Return a label with a different name of all previous generated labels.
+        /// </summary>
+        /// <returns></returns>
+        public string getNewLabel()
+        {
+            return "lab_0x" + (labelCounter++).ToString("x4");
+        }
+
         #endregion
 
         /// <summary>

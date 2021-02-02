@@ -3,3 +3,9 @@
 ################################################################################
 
 /CO2.RetroCPL/obj/x86/Debug
+/CO2.RetroCPL/bin/Debug
+/CO2.RetroCPL.Commons/obj/Debug
+/CO2.RetroCPL.Commons/bin/Debug
+/CO2.RetroCPL.FrontEnd/obj/Debug
+/CO2.RetroCPL.FrontEnd/bin/Debug
+/TestFiles

@@ -76,9 +76,9 @@ namespace CO2.RetroCPL.Commons
             if (qType.pointerDepth > 0)
                 for (int i = 0; i < qType.pointerDepth; i++) outputType += "*";
             
-            output += string.Format("| {0:16} | {1:12} | {2:3} | {3:16} | {4} | {5:3} | {6} | 0x{7:4} |{8}",
+            output += string.Format("| {0,-16} | {1,-12} | {2,3} | {3,-16} | {4} | {5,3} | {6,-6} |{7}",
                 substr(lex, 16), substr(outputType, 12), qType.arrSize.ToString("x3"), substr(framework_b, 16), c_v, n_uses.ToString("d3"),
-                (isLiteral) ? "Const" : "Undef", address.ToString("x4"), Environment.NewLine);
+                /*(isLiteral) ? "Const" : "Undef",*/ (address) < 0 ? "  --" : "0x" + address.ToString("x4"), Environment.NewLine);
 
             return output;
         }

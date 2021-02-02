@@ -80,6 +80,8 @@ namespace CO2.RetroCPL.Commons
             inputType.Add(inType);
             inputSymbols.Add(inSymbol);
             inputArguments.Add(new List<STEntry>());
+
+            addSymbol(inSymbol, inType);
             return true;
         }
 
@@ -559,19 +561,22 @@ namespace CO2.RetroCPL.Commons
                 inputType_string = inputType_string.Substring(0, inputType_string.Length - 2);
 
             output += string.Format("+-----------------------------------------------------------------------------+{0}", Environment.NewLine);
-            output += string.Format("|{0,78}|{1}", " ", Environment.NewLine);
+            output += string.Format("|{0,77}|{1}", " ", Environment.NewLine);
             if (!recursive)
-                output += string.Format("| Framework: {0,64} |{1}", name, Environment.NewLine);
+                output += string.Format("| Framework: {0,-64} |{1}", name, Environment.NewLine);
             else
-                output += string.Format("| Framework: (R){0,61} |{1}", name, Environment.NewLine);
-            output += string.Format("|{0,78}|{1}", " ", Environment.NewLine);
-            output += string.Format("| Input:     {0,65} |{1}", inputType_string.Substring(0, Math.Min(64, inputType_string.Length)), Environment.NewLine);
-            output += string.Format("| Output:    {0,65} |{1}", outputType.toString(), Environment.NewLine);
-            output += string.Format("| Var Mem:   {0,5} bytes {1,53} |{2}", symbolsSize, " ", Environment.NewLine);
-            output += string.Format("| Code Mem:  {0,5} bytes {1,53) |{2}", codeSize, " ", Environment.NewLine);
-            output += string.Format("|{0,78}|{1}", " ", Environment.NewLine);
+                output += string.Format("| Framework: (R){0,-61} |{1}", name, Environment.NewLine);
+            output += string.Format("|{0,77}|{1}", " ", Environment.NewLine);
+            output += string.Format("| Input:     {0,-64} |{1}", inputType_string.Substring(0, Math.Min(64, inputType_string.Length)), Environment.NewLine);
+            output += string.Format("| Output:    {0,-64} |{1}", outputType.toString(), Environment.NewLine);
+            if(codeSize > 0)
+            {
+                output += string.Format("| Var Mem:   {0,5} bytes {1,52} |{2}", symbolsSize, " ", Environment.NewLine);
+                output += string.Format("| Code Mem:  {0,5} bytes {1,52} |{2}", codeSize, " ", Environment.NewLine);
+            }
+            output += string.Format("|{0,77}|{1}", " ", Environment.NewLine);
             output += string.Format("+------------------+--------------+-----+------------------+---+-----+--------+{0}", Environment.NewLine);
-            output += string.Format("| Lexeme           | Type         | Arr | Framework        | V | #Us | MemAdd |{0}", Environment.NewLine);
+            output += string.Format("| Symbol           | Type         | Arr | Framework        | V | #Us | MemAdd |{0}", Environment.NewLine);
             output += string.Format("+------------------+--------------+-----+------------------+---+-----+--------+{0}", Environment.NewLine);
             foreach (var item in symbols)
                 output += item.Value.toString();

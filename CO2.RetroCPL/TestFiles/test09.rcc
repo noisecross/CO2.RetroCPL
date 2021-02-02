@@ -1,0 +1,85 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test09.rcc                         |
+* | v1.1, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Llamadas en grafo cerrado y recursividad
+ *
+ * ------------------------------------------
+ */
+
+byte piedra(byte);
+byte papel(byte);
+byte tijeras(byte);
+
+unsigned byte factorial(const unsigned byte);
+unsigned byte multiplica(const unsigned byte, const unsigned byte);
+
+ 
+void main(){
+    *((volatile unsigned byte*)0x0400) = factorial((unsigned byte)5);
+    *((volatile unsigned byte*)0x0401) = piedra(5);
+    
+    /*
+    ********************
+    * EXPECTED RESULTS *
+    ********************
+    
+    If compiled without -r flag, recursion not allowed error
+    Otherwise
+    0x0400 = 0x78
+    0x0401 = 0x0F
+    */    
+}
+
+/* ERR_ASM_MSG_02 "El compilador no admite grafos cerrados en las llamadas a funciones." */
+byte piedra(byte i){
+    if (i < 0){
+        return 0;
+    }else{
+        return i + tijeras(i - 1);
+	}
+}
+
+byte papel(byte i){
+    if (i < 0){
+        return 0;
+    }else{
+        return i + piedra(i - 1);
+	}
+}
+
+byte tijeras(byte i){
+    if (i < 0){
+        return 0;
+    }else{
+        return i + papel(i - 1);
+	}
+}
+
+/* ERR_SEM_MSG_16 "Recursividad no admitida." */
+unsigned byte factorial(const unsigned byte i){
+    if (i < 2){
+        return 1;
+    }else{
+        return multiplica(i, factorial(i-1));
+	}
+}
+
+unsigned byte multiplica(const unsigned byte x, const unsigned byte y){
+    unsigned byte output = 0;
+    unsigned byte i;
+    
+    for (i = 0 ; i < y ; i++){
+        output += x;
+    }
+    
+    return output;
+}

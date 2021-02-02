@@ -1,0 +1,35 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test05.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Prueba de Errores Semánticos 02
+ *
+ * ------------------------------------------
+ */
+
+byte foo(byte, byte);
+
+/* ERR_SEM_MSG_0B "Redefinición de una función ya declarada" */
+void foo(word x, word y){
+	/* ERR_SEM_MSG_06 "Tipos incompatibles" */
+	byte a = x;
+	
+	/* ERR_SEM_MSG_08 "Una variable no admite la propiedad \'interrupt\'" */
+	byte interrupt c;
+	
+	/* ERR_SEM_MSG_09 "Variable previamente declarada" */
+	word a;
+			
+	/* ERR_SEM_MSG_07 "Error de tipo en la declaración de la variable" */
+	const const byte b;
+}
+
+/* ERR_SEM_MSG_0A "No se encuentra la función de entrada \'main\'" */

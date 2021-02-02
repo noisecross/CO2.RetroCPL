@@ -1,0 +1,276 @@
+/**
+* |------------------------------------------|
+* | CO2 6502, COMPILER OPTIMIZER TO 6502     |
+* | File: test12.rcc                         |
+* | v1.0, Feb 2021                           |
+* | Author: Emilio Arango Delgado de Mendoza |
+* |------------------------------------------|
+*/
+
+/**
+ * ------------------------------------------
+ *
+ * Number comparators
+ *
+ * ------------------------------------------
+ */
+ 
+unsigned byte validator(unsigned word);
+
+void main(){
+	unsigned word pointer = 0x0400;
+
+	volatile byte ci = -120, /* 88 */
+	              cj =  -60, /* C4 */
+				  ck =    0,
+				  cl =   60,
+				  cm =  120;
+		 
+	volatile word ii = -8000, /* e0c0 */
+	              ij = -4000, /* f060 */
+				  ik =  -120, /* ff88 */
+				  il =     0,
+				  im =   120,
+				  in =  4000,
+				  io =  8000;
+	
+	/* Test 00 */
+	if(ci < cj){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 01 */
+	if(cj < ck){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 02 */
+	if(ck < cl){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 03 */
+	if(cl < cm){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 04 */
+	if(ci > cj){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 05 */
+	if(cj > ck){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+
+	/* Test 06 */
+	if(ck > cl){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 07 */
+	if(cl > cm){
+	}else{
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Test 08 */
+	if(ii < ij){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 09 */
+	if(ij < ik){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 0A */
+	if(ik < il){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 0B */
+	if(il < im){
+		validator(pointer);
+	}
+	pointer++;
+
+	/* Test 0C */
+	if(im < in){
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 0D */
+	if(in < io){
+		validator(pointer);
+	}
+	pointer++;
+
+	
+	/* Test 0E */
+	if(ii > ij){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 0F */
+	if(ij > ik){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 10 */
+	if(ik > il){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 11 */
+	if(il > im){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+
+	/* Test 12 */
+	if(im > in){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Test 13 */
+	if(in > io){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Tests 14 & 15 */
+	if (0x14 == validator(pointer)){
+		validator(++pointer);
+	}
+	pointer++;	
+	
+	/* Tests 16 */
+	if(cj < cj){
+	}else{
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Tests 17 */
+	if(cj > cj){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Tests 18 */
+	if(ck < ck){
+	}else{
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Tests 19 */
+	if(ck > ck){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+
+	/* Tests 1A */
+	if(cl < cl){
+	}else{
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Tests 1B */
+	if(cl > cl){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Tests 1C */
+	if(ik < ik){
+	}else{
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Tests 1D */
+	if(ik > ik){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Tests 1E */
+	if(il < il){
+	}else{
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Tests 1F */
+	if(il > il){
+	}else{
+		validator(pointer);
+	}
+	pointer++;
+
+	/* Tests 20 */
+	if(im < im){
+	} else {
+		validator(pointer);
+	}
+	pointer++;	
+	
+	/* Tests 21 */
+	if(im > im) {
+	} else {
+		validator(pointer);
+	}
+	pointer++;
+	
+	/* Mark */
+	validator(0x0422);
+	
+	/*
+	********************
+	* EXPECTED RESULTS *
+	********************
+	
+	0x0400 to 0x0422 = 1
+	
+	*/
+}
+
+
+
+unsigned byte validator(unsigned word pointer){
+	*((volatile byte*)pointer) = 1;
+	return lobyte pointer;
+}

@@ -64,7 +64,7 @@ namespace CO2.RetroCPL.Commons
         public bool sameOutput(QualifiedType operand)
         {
             /* FUTURE <strings> */
-            if (!((operand.type == Constants.TYPE_LITERAL) && ((type == "word") || (type == "byte"))))
+            if (!((operand.isLiteral()) && ((type == "word") || (type == "byte"))))
             {
                 if (type != operand.type) return false;
                 if (b_unsigned != operand.b_unsigned) return false;
@@ -74,6 +74,15 @@ namespace CO2.RetroCPL.Commons
             if (b_interrupt != operand.b_interrupt) return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Return a true value if this type is undefined and is refered to a literal.
+        /// </summary>
+        /// <returns></returns>
+        public bool isLiteral()
+        {
+            return type == Constants.TYPE_LITERAL;
         }
 
         /// <summary>
@@ -89,8 +98,8 @@ namespace CO2.RetroCPL.Commons
             if (type != operand.type) return false;
             if (pointerDepth != operand.pointerDepth) return false;
             if (b_unsigned != operand.b_unsigned) return false;
-            if (b_volatile && !operand.b_volatile) return false;
-            if (b_const && !operand.b_const) return false;
+            //if (b_volatile && !operand.b_volatile) return false;
+            //if (b_const && !operand.b_const) return false;
 
             return true;
         }
@@ -136,12 +145,12 @@ namespace CO2.RetroCPL.Commons
         }
     }
 
-    public class Type
+    public class STType
     {
         public string type;
         public int size;
 
-        public Type(string inType, int inSize)
+        public STType(string inType, int inSize)
         {
             type = inType;
             size = inSize;
